@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= title %> | List Templates</title>
+</head>
+<body>
+  <header>
+    <nav>
+      <% const links = [['/', 'Home'], ['/templates', 'Templates'], ['/lists', 'Lists']]; %>
+      <% links.forEach(([href, label]) => { %>
+        <% const active = href === '/' ? currentPath === '/' : currentPath.startsWith(href); %>
+        <a href="<%= href %>" <%- active ? 'aria-current="page"' : '' %>><%- active ? `<strong>${label}</strong>` : label %></a>
+      <% }); %>
+      |
+      <% if (currentUser) { %>
+        Logged in as <%= currentUser.username %>
+        <form action="/logout" method="POST">
+          <button type="submit">Log out</button>
+        </form>
+      <% } else { %>
+        <a href="/login" <%- currentPath === '/login' ? 'aria-current="page"' : '' %>>Log in</a>
+        <a href="/signup" <%- currentPath === '/signup' ? 'aria-current="page"' : '' %>>Sign up</a>
+      <% } %>
+    </nav>
+    <hr>
+  </header>
+  <main>

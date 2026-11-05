@@ -1,0 +1,37 @@
+<%- include('partials/header', { title: 'Sign up' }) %>
+
+<h1>Sign up</h1>
+
+<% if (errors.length) { %>
+  <ul role="alert">
+    <% errors.forEach((e) => { %><li><%= e %></li><% }); %>
+  </ul>
+<% } %>
+
+<form action="/signup" method="POST">
+  <p>
+    <label for="username">Username</label><br>
+    <input id="username" name="username" value="<%= values.username || '' %>"
+           required minlength="3" maxlength="50" pattern="[A-Za-z0-9_]+" autocomplete="username">
+    <br><small>3 to 50 characters: letters, numbers and underscores.</small>
+  </p>
+  <p>
+    <label for="email">Email</label><br>
+    <input id="email" name="email" type="email" value="<%= values.email || '' %>"
+           required maxlength="255" autocomplete="email">
+  </p>
+  <p>
+    <label for="password">Password</label><br>
+    <input id="password" name="password" type="password" required minlength="10" autocomplete="new-password">
+    <br><small>At least 10 characters, with an uppercase letter, a lowercase letter, a number and a symbol.</small>
+  </p>
+  <p>
+    <label for="confirmPassword">Confirm password</label><br>
+    <input id="confirmPassword" name="confirmPassword" type="password" required autocomplete="new-password">
+  </p>
+  <button type="submit">Create account</button>
+</form>
+
+<p>Already have an account? <a href="/login">Log in</a></p>
+
+<%- include('partials/footer') %>

@@ -1,0 +1,13 @@
+<%- include('partials/header', { title: 'Home' }) %>
+
+<h1>List Templates</h1>
+
+<% if (currentUser) { %>
+  <p>Welcome back, <%= currentUser.username %>.</p>
+  <p><a href="/templates/new">Create a template</a> or <a href="/lists/new">start a new list</a>.</p>
+<% } else { %>
+  <p>Design your own list templates, then build lists that follow them.</p>
+  <p><a href="/signup">Sign up</a> or <a href="/login">log in</a> to get started. You can browse <a href="/templates">templates</a> and <a href="/lists">lists</a> without an account.</p>
+<% } %>
+
+<%- include('partials/footer') %>
