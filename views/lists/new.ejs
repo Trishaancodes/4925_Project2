@@ -1,0 +1,62 @@
+<%- include('../partials/header', { title: 'New list' }) %>
+
+<nav aria-label="breadcrumb">
+  <ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="/lists">Lists</a></li>
+    <li class="breadcrumb-item active" aria-current="page">New</li>
+  </ol>
+</nav>
+
+<div class="row">
+  <div class="col-lg-7">
+    <h1 class="h2 mb-3">New list</h1>
+
+    <%- include('../partials/errors', { errors }) %>
+
+    <% if (templates.length === 0) { %>
+      <div class="alert alert-warning">
+        There are no templates yet. <a href="/templates/new" class="alert-link">Create a template first.</a>
+      </div>
+    <% } else { %>
+      <% const mine = templates.filter((t) => t.is_mine); %>
+      <% const others = templates.filter((t) => !t.is_mine); %>
+      <div class="card">
+        <div class="card-body">
+          <form action="/lists" method="POST">
+            <div class="mb-3">
+              <label for="name" class="form-label">List name</label>
+              <input id="name" name="name" class="form-control" value="<%= values.name %>" required maxlength="100" placeholder="Office Appointments">
+            </div>
+            <div class="mb-4">
+              <label for="templateId" class="form-label">Template</label>
+              <select id="templateId" name="templateId" class="form-select" required aria-describedby="template-help">
+                <option value="">Pick a template</option>
+                <% [['Your templates', mine], ["Other people's templates", others]].forEach(([groupLabel, group]) => { %>
+                  <% if (group.length) { %>
+                    <optgroup label="<%= groupLabel %>">
+                      <% group.forEach((t) => { %>
+                        <option value="<%= t.template_id %>" <%= String(t.template_id) === values.templateId ? 'selected' : '' %>>
+                          <%= t.name %><%= t.is_mine ? '' : ` (by ${t.username})` %>
+                        </option>
+                      <% }); %>
+                    </optgroup>
+                  <% } %>
+                <% }); %>
+              </select>
+              <div id="template-help" class="form-text">
+                Every entry in the list must follow this template's rules.
+                <% if (mine.length === 0) { %>You can also <a href="/templates/new">make your own template</a>.<% } %>
+              </div>
+            </div>
+            <div class="d-flex gap-2">
+              <button type="submit" class="btn btn-primary">Create list</button>
+              <a class="btn btn-outline-secondary" href="/lists">Cancel</a>
+            </div>
+          </form>
+        </div>
+      </div>
+    <% } %>
+  </div>
+</div>
+
+<%- include('../partials/footer') %>

@@ -4,26 +4,39 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title><%= title %> | List Templates</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+        integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
 </head>
-<body>
-  <header>
-    <nav>
-      <% const links = [['/', 'Home'], ['/templates', 'Templates'], ['/lists', 'Lists']]; %>
-      <% links.forEach(([href, label]) => { %>
-        <% const active = href === '/' ? currentPath === '/' : currentPath.startsWith(href); %>
-        <a href="<%= href %>" <%- active ? 'aria-current="page"' : '' %>><%- active ? `<strong>${label}</strong>` : label %></a>
-      <% }); %>
-      |
-      <% if (currentUser) { %>
-        Logged in as <%= currentUser.username %>
-        <form action="/logout" method="POST">
-          <button type="submit">Log out</button>
-        </form>
-      <% } else { %>
-        <a href="/login" <%- currentPath === '/login' ? 'aria-current="page"' : '' %>>Log in</a>
-        <a href="/signup" <%- currentPath === '/signup' ? 'aria-current="page"' : '' %>>Sign up</a>
-      <% } %>
-    </nav>
-    <hr>
-  </header>
-  <main>
+<body class="d-flex flex-column min-vh-100 bg-body-tertiary">
+  <nav class="navbar navbar-expand-md bg-body border-bottom">
+    <div class="container">
+      <a class="navbar-brand fw-semibold" href="/">List Templates</a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#main-nav"
+              aria-controls="main-nav" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="main-nav">
+        <ul class="navbar-nav me-auto">
+          <% const links = [['/', 'Home'], ['/templates', 'Templates'], ['/lists', 'Lists']]; %>
+          <% links.forEach(([href, label]) => { %>
+            <% const active = href === '/' ? currentPath === '/' : currentPath.startsWith(href); %>
+            <li class="nav-item">
+              <a class="nav-link <%= active ? 'active fw-semibold' : '' %>" href="<%= href %>" <%- active ? 'aria-current="page"' : '' %>><%= label %></a>
+            </li>
+          <% }); %>
+        </ul>
+        <div class="d-flex align-items-center gap-2">
+          <% if (currentUser) { %>
+            <span class="navbar-text small">Signed in as <strong><%= currentUser.username %></strong></span>
+            <form action="/logout" method="POST" class="m-0">
+              <button type="submit" class="btn btn-outline-secondary btn-sm">Log out</button>
+            </form>
+          <% } else { %>
+            <a class="btn btn-sm <%= currentPath === '/login' ? 'btn-secondary' : 'btn-outline-secondary' %>" href="/login" <%- currentPath === '/login' ? 'aria-current="page"' : '' %>>Log in</a>
+            <a class="btn btn-sm btn-primary" href="/signup" <%- currentPath === '/signup' ? 'aria-current="page"' : '' %>>Sign up</a>
+          <% } %>
+        </div>
+      </div>
+    </div>
+  </nav>
+  <main class="container flex-grow-1 py-4">

@@ -1,0 +1,26 @@
+<%# One labelled input for a column. Params: field ({ name, type, is_required, rules }), name (form name), id, value, required (bool), label. %>
+<% const text = value === undefined || value === null ? '' : String(value); %>
+<% if (field.type === 'boolean') { %>
+  <div class="form-check">
+    <%# Unchecked boxes send nothing, so the hidden "false" makes "no" explicit. If checked, "on" comes last and wins. %>
+    <input type="hidden" name="<%= name %>" value="false">
+    <input class="form-check-input" type="checkbox" id="<%= id %>" name="<%= name %>" value="on" <%= value === true || text === 'on' || text === 'true' ? 'checked' : '' %>>
+    <label class="form-check-label" for="<%= id %>"><%= label %></label>
+  </div>
+<% } else { %>
+  <label class="form-label" for="<%= id %>"><%= label %></label>
+  <% if (field.type === 'textarea') { %>
+    <textarea class="form-control" id="<%= id %>" name="<%= name %>" rows="4" maxlength="5000" <%= required ? 'required' : '' %>><%= text %></textarea>
+  <% } else if (field.type === 'dropdown') { %>
+    <select class="form-select" id="<%= id %>" name="<%= name %>" <%= required ? 'required' : '' %>>
+      <option value="">Choose...</option>
+      <% ((field.rules && field.rules.options) || []).forEach((option) => { %>
+        <option value="<%= option %>" <%= option === text ? 'selected' : '' %>><%= option %></option>
+      <% }); %>
+    </select>
+  <% } else if (field.type === 'date') { %>
+    <input class="form-control" type="date" id="<%= id %>" name="<%= name %>" value="<%= text %>" <%= required ? 'required' : '' %>>
+  <% } else { %>
+    <input class="form-control" id="<%= id %>" name="<%= name %>" value="<%= text %>" maxlength="255" <%= required ? 'required' : '' %>>
+  <% } %>
+<% } %>

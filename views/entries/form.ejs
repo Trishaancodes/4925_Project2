@@ -1,0 +1,49 @@
+<%# Shared by "add entry" and "edit entry". `entry` is null when adding. %>
+<% const heading = entry ? 'Edit entry' : 'Add entry'; %>
+<%- include('../partials/header', { title: `${heading} | ${list.name}` }) %>
+
+<nav aria-label="breadcrumb">
+  <ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="/lists">Lists</a></li>
+    <li class="breadcrumb-item"><a href="/lists/<%= list.list_id %>"><%= list.name %></a></li>
+    <li class="breadcrumb-item active" aria-current="page"><%= heading %></li>
+  </ol>
+</nav>
+
+<div class="row">
+  <div class="col-lg-7">
+    <h1 class="h2 mb-3"><%= heading %></h1>
+
+    <% if (entry && entry.version_number < list.version_number) { %>
+      <div class="alert alert-info">
+        <strong>This entry was saved under version <%= entry.version_number %> of the template.</strong>
+        Saving it will check it against version <%= list.version_number %>'s rules.
+      </div>
+    <% } %>
+
+    <%- include('../partials/errors', { errors }) %>
+
+    <div class="card">
+      <div class="card-body">
+        <form action="<%= entry ? `/lists/${list.list_id}/entries/${entry.entry_id}/edit` : `/lists/${list.list_id}/entries` %>" method="POST">
+          <% fields.forEach((field, i) => { %>
+            <div class="mb-3">
+              <%- include('_input', {
+                field, name: `f_${i}`, id: `f_${i}`, value: values[i],
+                required: field.is_required && field.type !== 'boolean',
+                label: field.name + (field.is_required ? ' *' : ''),
+              }) %>
+            </div>
+          <% }); %>
+          <p class="form-text">* required</p>
+          <div class="d-flex gap-2">
+            <button type="submit" class="btn btn-primary"><%= entry ? 'Save changes' : 'Add entry' %></button>
+            <a class="btn btn-outline-secondary" href="/lists/<%= list.list_id %>">Cancel</a>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<%- include('../partials/footer') %>

@@ -1,0 +1,66 @@
+<%- include('../partials/header', { title: template.name }) %>
+
+<nav aria-label="breadcrumb">
+  <ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="/templates">Templates</a></li>
+    <li class="breadcrumb-item active" aria-current="page"><%= template.name %></li>
+  </ol>
+</nav>
+
+<div class="d-flex flex-wrap justify-content-between align-items-start gap-3 mb-3">
+  <div>
+    <h1 class="h2 mb-1"><%= template.name %></h1>
+    <p class="text-body-secondary mb-0">
+      By <%= template.username %> &middot;
+      <span class="badge text-bg-secondary">v<%= template.version_number %></span> &middot;
+      Created <%= template.created_at.toLocaleDateString('en-CA') %> &middot;
+      Used by <%= template.list_count %> <%= template.list_count === 1 ? 'list' : 'lists' %>
+    </p>
+  </div>
+  <div class="d-flex flex-wrap gap-2">
+    <% if (currentUser) { %>
+      <a class="btn btn-primary" href="/lists/new?templateId=<%= template.template_id %>">Create a list from this</a>
+    <% } %>
+    <% if (isOwner) { %>
+      <a class="btn btn-outline-secondary" href="/templates/<%= template.template_id %>/edit">Edit</a>
+      <form action="/templates/<%= template.template_id %>/delete" method="POST" class="m-0"
+            onsubmit="return confirm('Delete this template and all its versions?');">
+        <button type="submit" class="btn btn-outline-danger">Delete</button>
+      </form>
+    <% } %>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-header fw-semibold">Columns</div>
+  <div class="table-responsive">
+    <table class="table align-middle mb-0">
+      <thead class="table-light">
+        <tr>
+          <th scope="col">Name</th>
+          <th scope="col">Type</th>
+          <th scope="col">Required</th>
+          <th scope="col">Options</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% fields.forEach((f) => { %>
+          <tr>
+            <td class="fw-semibold"><%= f.name %></td>
+            <td><%= fieldTypes[f.type] %></td>
+            <td>
+              <% if (f.is_required) { %><span class="badge text-bg-primary">Required</span><% } else { %><span class="text-body-secondary">Optional</span><% } %>
+            </td>
+            <td>
+              <% if (f.rules && f.rules.options) { %>
+                <% f.rules.options.forEach((o) => { %><span class="badge text-bg-light border me-1"><%= o %></span><% }); %>
+              <% } %>
+            </td>
+          </tr>
+        <% }); %>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<%- include('../partials/footer') %>

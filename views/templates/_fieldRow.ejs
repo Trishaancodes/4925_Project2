@@ -1,0 +1,35 @@
+<%# One column in the template form. `index` is a number, or "__INDEX__" in the blank copy the page's script clones. %>
+<div class="card mb-3" data-field-row>
+  <div class="card-body">
+    <div class="row g-3 align-items-end">
+      <div class="col-md-3">
+        <label class="form-label" for="field-<%= index %>-name">Column name</label>
+        <input class="form-control" id="field-<%= index %>-name" name="fields[<%= index %>][name]"
+               value="<%= field.name %>" required maxlength="100">
+      </div>
+      <div class="col-md-3">
+        <label class="form-label" for="field-<%= index %>-type">Type</label>
+        <select class="form-select" id="field-<%= index %>-type" name="fields[<%= index %>][type]" data-type-select>
+          <% Object.entries(fieldTypes).forEach(([value, label]) => { %>
+            <option value="<%= value %>" <%= field.type === value ? 'selected' : '' %>><%= label %></option>
+          <% }); %>
+        </select>
+      </div>
+      <div class="col-md-3" data-options <%= field.type === 'dropdown' ? '' : 'hidden' %>>
+        <label class="form-label" for="field-<%= index %>-options">Options (comma separated)</label>
+        <input class="form-control" id="field-<%= index %>-options" name="fields[<%= index %>][options]"
+               value="<%= field.optionsText %>" placeholder="yes, no, maybe">
+      </div>
+      <div class="col-auto">
+        <div class="form-check mb-2">
+          <input class="form-check-input" type="checkbox" id="field-<%= index %>-required"
+                 name="fields[<%= index %>][required]" <%= field.isRequired ? 'checked' : '' %>>
+          <label class="form-check-label" for="field-<%= index %>-required">Required</label>
+        </div>
+      </div>
+      <div class="col-auto ms-auto">
+        <button type="button" class="btn btn-outline-danger btn-sm mb-1" data-remove-row>Remove</button>
+      </div>
+    </div>
+  </div>
+</div>

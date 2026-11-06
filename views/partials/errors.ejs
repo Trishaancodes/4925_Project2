@@ -1,0 +1,9 @@
+<%# Red box listing form errors. Items can be strings or { message }. %>
+<% if (errors && errors.length) { %>
+  <div class="alert alert-danger" role="alert">
+    <p class="fw-semibold mb-1">Please fix the following:</p>
+    <ul class="mb-0">
+      <% errors.forEach((e) => { %><li><%= typeof e === 'string' ? e : e.message %></li><% }); %>
+    </ul>
+  </div>
+<% } %>

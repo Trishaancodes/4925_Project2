@@ -1,25 +1,28 @@
 <%- include('partials/header', { title: 'Log in' }) %>
 
-<h1>Log in</h1>
+<div class="row justify-content-center">
+  <div class="col-sm-10 col-md-7 col-lg-5">
+    <div class="card shadow-sm">
+      <div class="card-body p-4">
+        <h1 class="h3 mb-4">Log in</h1>
 
-<% if (errors.length) { %>
-  <ul role="alert">
-    <% errors.forEach((e) => { %><li><%= e %></li><% }); %>
-  </ul>
-<% } %>
+        <%- include('partials/errors', { errors }) %>
 
-<form action="/login" method="POST">
-  <p>
-    <label for="identifier">Username or email</label><br>
-    <input id="identifier" name="identifier" value="<%= values.identifier || '' %>" required autocomplete="username">
-  </p>
-  <p>
-    <label for="password">Password</label><br>
-    <input id="password" name="password" type="password" required autocomplete="current-password">
-  </p>
-  <button type="submit">Log in</button>
-</form>
-
-<p>No account yet? <a href="/signup">Sign up</a></p>
+        <form action="/login" method="POST">
+          <div class="mb-3">
+            <label for="identifier" class="form-label">Username or email</label>
+            <input id="identifier" name="identifier" class="form-control" value="<%= values.identifier || '' %>" required autocomplete="username">
+          </div>
+          <div class="mb-4">
+            <label for="password" class="form-label">Password</label>
+            <input id="password" name="password" type="password" class="form-control" required autocomplete="current-password">
+          </div>
+          <button type="submit" class="btn btn-primary w-100">Log in</button>
+        </form>
+      </div>
+    </div>
+    <p class="text-center mt-3">No account yet? <a href="/signup">Sign up</a></p>
+  </div>
+</div>
 
 <%- include('partials/footer') %>

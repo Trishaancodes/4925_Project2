@@ -14,6 +14,15 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 const isProduction = process.env.NODE_ENV === 'production';
 
+// On the live site, refuse to start without real secrets instead of silently using weak defaults
+if (isProduction) {
+  const missing = ['SESSION_SECRET', 'MONGO_URL', 'MONGO_CRYPTO_SECRET', 'DB_HOST', 'DB_USER', 'DB_PASSWORD', 'DB_NAME']
+    .filter((key) => !process.env[key]);
+  if (missing.length) {
+    throw new Error(`Missing environment variables: ${missing.join(', ')}`);
+  }
+}
+
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
 
@@ -37,6 +46,7 @@ app.use(session({
   store: process.env.MONGO_URL
     ? MongoStore.create({
         mongoUrl: process.env.MONGO_URL,
+        dbName: process.env.MONGO_DB_NAME || 'list_templates',
         cryptoAdapter: createWebCryptoAdapter({ secret: process.env.MONGO_CRYPTO_SECRET }),
       })
     : undefined,

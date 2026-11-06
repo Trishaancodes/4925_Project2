@@ -1,0 +1,48 @@
+<%- include('../partials/header', { title: 'Templates' }) %>
+
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+  <h1 class="h2 mb-0">Templates</h1>
+  <% if (currentUser) { %>
+    <a class="btn btn-primary" href="/templates/new">Create a template</a>
+  <% } %>
+</div>
+
+<% if (templates.length === 0) { %>
+  <div class="card card-body text-center py-5">
+    <p class="mb-2">No templates yet.</p>
+    <% if (currentUser) { %>
+      <div><a class="btn btn-primary" href="/templates/new">Create the first one</a></div>
+    <% } else { %>
+      <p class="mb-0"><a href="/signup">Sign up</a> to create one.</p>
+    <% } %>
+  </div>
+<% } else { %>
+  <div class="card">
+    <div class="table-responsive">
+      <table class="table table-hover align-middle mb-0">
+        <thead class="table-light">
+          <tr>
+            <th scope="col">Name</th>
+            <th scope="col">Owner</th>
+            <th scope="col">Columns</th>
+            <th scope="col">Version</th>
+            <th scope="col">Created</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% templates.forEach((t) => { %>
+            <tr>
+              <td><a class="fw-semibold" href="/templates/<%= t.template_id %>"><%= t.name %></a></td>
+              <td><%= t.username %></td>
+              <td><%= t.field_count %></td>
+              <td><span class="badge text-bg-secondary">v<%= t.version_number %></span></td>
+              <td class="text-body-secondary"><%= t.created_at.toLocaleDateString('en-CA') %></td>
+            </tr>
+          <% }); %>
+        </tbody>
+      </table>
+    </div>
+  </div>
+<% } %>
+
+<%- include('../partials/footer') %>

@@ -1,0 +1,85 @@
+<%# Shared by "new template" and "edit template". `edit` is null for a new template. %>
+<% const heading = edit ? `Edit ${edit.originalName}` : 'New template'; %>
+<%- include('../partials/header', { title: heading }) %>
+
+<nav aria-label="breadcrumb">
+  <ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="/templates">Templates</a></li>
+    <% if (edit) { %>
+      <li class="breadcrumb-item"><a href="/templates/<%= edit.templateId %>"><%= edit.originalName %></a></li>
+      <li class="breadcrumb-item active" aria-current="page">Edit</li>
+    <% } else { %>
+      <li class="breadcrumb-item active" aria-current="page">New</li>
+    <% } %>
+  </ol>
+</nav>
+
+<h1 class="h2 mb-3"><%= heading %></h1>
+
+<% if (edit && edit.entryCount > 0) { %>
+  <div class="alert alert-info">
+    <strong><%= edit.entryCount %> list <%= edit.entryCount === 1 ? 'entry uses' : 'entries use' %> version <%= edit.versionNumber %>.</strong>
+    Changing the columns will save a new version <%= edit.versionNumber + 1 %>.
+    Existing entries keep the rules they were saved with.
+  </div>
+<% } %>
+
+<%- include('../partials/errors', { errors }) %>
+
+<form action="<%= edit ? `/templates/${edit.templateId}/edit` : '/templates' %>" method="POST">
+  <div class="card mb-4">
+    <div class="card-body">
+      <label for="name" class="form-label">Template name</label>
+      <input id="name" name="name" class="form-control" value="<%= values.name %>" required maxlength="100" placeholder="Contact">
+    </div>
+  </div>
+
+  <h2 class="h5 mb-3">Columns</h2>
+  <div id="field-rows">
+    <% values.fields.forEach((field, index) => { %>
+      <%- include('_fieldRow', { index, field, fieldTypes }) %>
+    <% }); %>
+  </div>
+
+  <button type="button" class="btn btn-outline-primary mb-4" id="add-row">+ Add column</button>
+
+  <div class="d-flex gap-2 border-top pt-3">
+    <button type="submit" class="btn btn-primary">Save template</button>
+    <a class="btn btn-outline-secondary" href="<%= edit ? `/templates/${edit.templateId}` : '/templates' %>">Cancel</a>
+  </div>
+</form>
+
+<%# Blank column the script copies when "Add column" is clicked %>
+<template id="field-row-template">
+  <%- include('_fieldRow', { index: '__INDEX__', field: { name: '', type: 'text', isRequired: false, optionsText: '' }, fieldTypes }) %>
+</template>
+
+<script>
+  const rows = document.getElementById('field-rows');
+  const blankRow = document.getElementById('field-row-template');
+  let nextIndex = <%= values.fields.length %>;
+
+  document.getElementById('add-row').addEventListener('click', () => {
+    const html = blankRow.innerHTML.replaceAll('__INDEX__', nextIndex++);
+    rows.insertAdjacentHTML('beforeend', html);
+    rows.lastElementChild.querySelector('input').focus();
+  });
+
+  rows.addEventListener('click', (e) => {
+    if (!e.target.matches('[data-remove-row]')) return;
+    if (rows.querySelectorAll('[data-field-row]').length === 1) {
+      alert('A template needs at least one column.');
+      return;
+    }
+    e.target.closest('[data-field-row]').remove();
+  });
+
+  // Only show the options box for dropdown columns
+  rows.addEventListener('change', (e) => {
+    if (!e.target.matches('[data-type-select]')) return;
+    const options = e.target.closest('[data-field-row]').querySelector('[data-options]');
+    options.hidden = e.target.value !== 'dropdown';
+  });
+</script>
+
+<%- include('../partials/footer') %>

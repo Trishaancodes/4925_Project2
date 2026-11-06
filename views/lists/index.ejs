@@ -1,0 +1,48 @@
+<%- include('../partials/header', { title: 'Lists' }) %>
+
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+  <h1 class="h2 mb-0">Lists</h1>
+  <% if (currentUser) { %>
+    <a class="btn btn-primary" href="/lists/new">Create a list</a>
+  <% } %>
+</div>
+
+<% if (lists.length === 0) { %>
+  <div class="card card-body text-center py-5">
+    <p class="mb-2">No lists yet.</p>
+    <% if (currentUser) { %>
+      <div><a class="btn btn-primary" href="/lists/new">Create the first one</a></div>
+    <% } else { %>
+      <p class="mb-0"><a href="/signup">Sign up</a> to create one.</p>
+    <% } %>
+  </div>
+<% } else { %>
+  <div class="card">
+    <div class="table-responsive">
+      <table class="table table-hover align-middle mb-0">
+        <thead class="table-light">
+          <tr>
+            <th scope="col">Name</th>
+            <th scope="col">Owner</th>
+            <th scope="col">Template</th>
+            <th scope="col">Entries</th>
+            <th scope="col">Created</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% lists.forEach((l) => { %>
+            <tr>
+              <td><a class="fw-semibold" href="/lists/<%= l.list_id %>"><%= l.name %></a></td>
+              <td><%= l.username %></td>
+              <td><a class="link-secondary" href="/templates/<%= l.template_id %>"><%= l.template_name %></a></td>
+              <td><%= l.entry_count %></td>
+              <td class="text-body-secondary"><%= l.created_at.toLocaleDateString('en-CA') %></td>
+            </tr>
+          <% }); %>
+        </tbody>
+      </table>
+    </div>
+  </div>
+<% } %>
+
+<%- include('../partials/footer') %>

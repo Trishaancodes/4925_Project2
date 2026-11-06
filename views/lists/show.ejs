@@ -1,0 +1,104 @@
+<%- include('../partials/header', { title: list.name }) %>
+
+<nav aria-label="breadcrumb">
+  <ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="/lists">Lists</a></li>
+    <li class="breadcrumb-item active" aria-current="page"><%= list.name %></li>
+  </ol>
+</nav>
+
+<div class="d-flex flex-wrap justify-content-between align-items-start gap-3 mb-3">
+  <div>
+    <h1 class="h2 mb-1"><%= list.name %></h1>
+    <p class="text-body-secondary mb-0">
+      By <%= list.username %> &middot;
+      Template <a href="/templates/<%= list.template_id %>"><%= list.template_name %></a>
+      <span class="badge text-bg-secondary">v<%= list.version_number %></span> &middot;
+      Created <%= list.created_at.toLocaleDateString('en-CA') %>
+    </p>
+  </div>
+  <% if (isOwner) { %>
+    <div class="d-flex flex-wrap gap-2">
+      <a class="btn btn-primary" href="/lists/<%= list.list_id %>/entries/new">+ Add entry</a>
+      <form action="/lists/<%= list.list_id %>/delete" method="POST" class="m-0"
+            onsubmit="return confirm('Delete this list and all its entries?');">
+        <button type="submit" class="btn btn-outline-danger">Delete list</button>
+      </form>
+    </div>
+  <% } %>
+</div>
+
+<% if (isOwner && upgradeResult) { %>
+  <div class="alert <%= upgradeResult.remaining ? 'alert-warning' : 'alert-success' %>" role="status">
+    Updated <%= upgradeResult.upgraded %> <%= upgradeResult.upgraded === 1 ? 'entry' : 'entries' %> to version <%= list.version_number %>.
+    <% if (upgradeResult.remaining) { %><%= upgradeResult.remaining %> still need fixing.<% } %>
+  </div>
+<% } %>
+
+<% const oldCount = entries.filter((e) => e.version_number < list.version_number).length; %>
+<% if (isOwner && oldCount > 0) { %>
+  <div class="alert alert-warning d-flex flex-wrap justify-content-between align-items-center gap-2">
+    <span>
+      <strong>The template has changed.</strong>
+      <%= oldCount %> <%= oldCount === 1 ? 'entry follows' : 'entries follow' %> an older version's rules.
+    </span>
+    <a class="btn btn-warning btn-sm" href="/lists/<%= list.list_id %>/entries/upgrade">Apply the new rules to existing entries</a>
+  </div>
+<% } %>
+
+<% if (entries.length === 0) { %>
+  <div class="card card-body text-center py-5">
+    <p class="mb-2">No entries yet.</p>
+    <% if (isOwner) { %>
+      <div><a class="btn btn-primary" href="/lists/<%= list.list_id %>/entries/new">Add the first entry</a></div>
+    <% } %>
+  </div>
+<% } else { %>
+  <div class="card">
+    <div class="table-responsive">
+      <table class="table table-hover align-middle mb-0">
+        <thead class="table-light">
+          <tr>
+            <% fields.forEach((f) => { %><th scope="col"><%= f.name %></th><% }); %>
+            <th scope="col">Version</th>
+            <% if (isOwner) { %><th scope="col" class="text-end">Actions</th><% } %>
+          </tr>
+        </thead>
+        <tbody>
+          <% entries.forEach((e) => { %>
+            <tr>
+              <% fields.forEach((f) => { %>
+                <% const value = e.data[f.name]; %>
+                <td>
+                  <% if (value === undefined || value === null || value === '') { %>
+                    <span class="text-body-tertiary">&mdash;</span>
+                  <% } else if (f.type === 'boolean') { %>
+                    <span class="badge <%= value ? 'text-bg-success' : 'text-bg-light border' %>"><%= value ? 'Yes' : 'No' %></span>
+                  <% } else if (f.type === 'textarea') { %>
+                    <% String(value).split('\n').forEach((line, i) => { %><% if (i) { %><br><% } %><%= line %><% }); %>
+                  <% } else { %>
+                    <%= value %>
+                  <% } %>
+                </td>
+              <% }); %>
+              <td>
+                <span class="badge <%= e.version_number < list.version_number ? 'text-bg-warning' : 'text-bg-secondary' %>">v<%= e.version_number %></span>
+              </td>
+              <% if (isOwner) { %>
+                <td class="text-end text-nowrap">
+                  <a class="btn btn-outline-secondary btn-sm" href="/lists/<%= list.list_id %>/entries/<%= e.entry_id %>/edit">Edit</a>
+                  <form action="/lists/<%= list.list_id %>/entries/<%= e.entry_id %>/delete" method="POST" class="d-inline"
+                        onsubmit="return confirm('Delete this entry?');">
+                    <button type="submit" class="btn btn-outline-danger btn-sm">Delete</button>
+                  </form>
+                </td>
+              <% } %>
+            </tr>
+          <% }); %>
+        </tbody>
+      </table>
+    </div>
+  </div>
+<% } %>
+
+<%- include('../partials/footer') %>

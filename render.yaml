@@ -1,0 +1,30 @@
+# Render Blueprint: in Render choose New > Blueprint and pick this repo.
+# Secret values (sync: false) are typed into Render's dashboard, never committed here.
+services:
+  - type: web
+    name: list-templates
+    runtime: node
+    plan: free
+    buildCommand: npm ci
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DB_SSL
+        value: "true"
+      - key: DB_HOST
+        sync: false
+      - key: DB_PORT
+        sync: false
+      - key: DB_USER
+        sync: false
+      - key: DB_PASSWORD
+        sync: false
+      - key: DB_NAME
+        sync: false
+      - key: MONGO_URL
+        sync: false
+      - key: SESSION_SECRET
+        generateValue: true
+      - key: MONGO_CRYPTO_SECRET
+        generateValue: true

@@ -1,37 +1,41 @@
 <%- include('partials/header', { title: 'Sign up' }) %>
 
-<h1>Sign up</h1>
+<div class="row justify-content-center">
+  <div class="col-sm-10 col-md-7 col-lg-5">
+    <div class="card shadow-sm">
+      <div class="card-body p-4">
+        <h1 class="h3 mb-4">Create an account</h1>
 
-<% if (errors.length) { %>
-  <ul role="alert">
-    <% errors.forEach((e) => { %><li><%= e %></li><% }); %>
-  </ul>
-<% } %>
+        <%- include('partials/errors', { errors }) %>
 
-<form action="/signup" method="POST">
-  <p>
-    <label for="username">Username</label><br>
-    <input id="username" name="username" value="<%= values.username || '' %>"
-           required minlength="3" maxlength="50" pattern="[A-Za-z0-9_]+" autocomplete="username">
-    <br><small>3 to 50 characters: letters, numbers and underscores.</small>
-  </p>
-  <p>
-    <label for="email">Email</label><br>
-    <input id="email" name="email" type="email" value="<%= values.email || '' %>"
-           required maxlength="255" autocomplete="email">
-  </p>
-  <p>
-    <label for="password">Password</label><br>
-    <input id="password" name="password" type="password" required minlength="10" autocomplete="new-password">
-    <br><small>At least 10 characters, with an uppercase letter, a lowercase letter, a number and a symbol.</small>
-  </p>
-  <p>
-    <label for="confirmPassword">Confirm password</label><br>
-    <input id="confirmPassword" name="confirmPassword" type="password" required autocomplete="new-password">
-  </p>
-  <button type="submit">Create account</button>
-</form>
-
-<p>Already have an account? <a href="/login">Log in</a></p>
+        <form action="/signup" method="POST">
+          <div class="mb-3">
+            <label for="username" class="form-label">Username</label>
+            <input id="username" name="username" class="form-control" value="<%= values.username || '' %>"
+                   required minlength="3" maxlength="50" pattern="[A-Za-z0-9_]+" autocomplete="username" aria-describedby="username-help">
+            <div id="username-help" class="form-text">3 to 50 characters: letters, numbers and underscores.</div>
+          </div>
+          <div class="mb-3">
+            <label for="email" class="form-label">Email</label>
+            <input id="email" name="email" type="email" class="form-control" value="<%= values.email || '' %>"
+                   required maxlength="255" autocomplete="email">
+          </div>
+          <div class="mb-3">
+            <label for="password" class="form-label">Password</label>
+            <input id="password" name="password" type="password" class="form-control" required minlength="10"
+                   autocomplete="new-password" aria-describedby="password-help">
+            <div id="password-help" class="form-text">At least 10 characters, with an uppercase letter, a lowercase letter, a number and a symbol.</div>
+          </div>
+          <div class="mb-4">
+            <label for="confirmPassword" class="form-label">Confirm password</label>
+            <input id="confirmPassword" name="confirmPassword" type="password" class="form-control" required autocomplete="new-password">
+          </div>
+          <button type="submit" class="btn btn-primary w-100">Create account</button>
+        </form>
+      </div>
+    </div>
+    <p class="text-center mt-3">Already have an account? <a href="/login">Log in</a></p>
+  </div>
+</div>
 
 <%- include('partials/footer') %>
