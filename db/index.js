@@ -16,6 +16,7 @@ const connectionConfig = {
   user: process.env.DB_USER,
   password: process.env.DB_PASSWORD,
   ssl: sslConfig(),
+  timezone: 'Z', // MySQL stores CURRENT_TIMESTAMP in UTC; read it back as UTC
 };
 
 // One shared connection pool for the whole app. Use db.query(sql, [params]) with ? placeholders.

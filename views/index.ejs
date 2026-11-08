@@ -1,52 +1,35 @@
-<%- include('partials/header', { title: 'Home' }) %>
+<%- include('partials/header', { title: 'Welcome' }) %>
 
-<div class="p-4 p-md-5 mb-4 bg-body rounded-3 border">
-  <h1 class="display-6 fw-semibold">Custom lists, built from your own templates</h1>
-  <p class="lead col-lg-8">
-    Design a template once, with the columns and rules you need, then create as many lists from it as you like.
-    Every entry is checked against the template's rules before it's saved.
-  </p>
-  <% if (currentUser) { %>
-    <p class="mb-0">Welcome back, <strong><%= currentUser.username %></strong>.</p>
-    <div class="d-flex flex-wrap gap-2 mt-3">
-      <a class="btn btn-primary" href="/templates/new">Create a template</a>
-      <a class="btn btn-outline-primary" href="/lists/new">Start a new list</a>
-    </div>
-  <% } else { %>
+<div class="card lf-hero border-0 mb-4">
+  <div class="card-body p-4 p-md-5">
+    <h1 class="display-5 fw-bold lh-sm mb-3" style="max-width: 36rem">Schema-Driven Lists, Done Right.</h1>
+    <p class="lead text-body-secondary mb-4" style="max-width: 36rem">
+      Design a template once, with the columns and rules you need, then create as many lists from it as you like.
+      Every entry is checked against the template's rules before it's saved.
+    </p>
     <div class="d-flex flex-wrap gap-2">
-      <a class="btn btn-primary" href="/signup">Get started</a>
-      <a class="btn btn-outline-secondary" href="/templates">Browse templates</a>
+      <a class="btn btn-primary btn-lg" href="/signup">Get started</a>
+      <a class="btn btn-outline-secondary btn-lg" href="/templates">Browse templates</a>
     </div>
-  <% } %>
+  </div>
 </div>
 
 <div class="row g-3">
-  <div class="col-md-4">
-    <div class="card h-100">
-      <div class="card-body">
-        <h2 class="h5 card-title">1. Design a template</h2>
-        <p class="card-text text-body-secondary">Add columns like checkboxes, text, dropdowns and dates, and choose which ones are required.</p>
-        <a href="/templates" class="card-link">Templates</a>
+  <% [
+       ['bi-stack', 'Design a template', 'Add checkboxes, text, dropdowns, dates, numbers, emails and links, and choose which ones are required.'],
+       ['bi-list-ul', 'Create lists', 'Make lists from any template, like "Office Appointments" and "Home Visits" from one "Contact" template.'],
+       ['bi-shield-check', 'Change safely', 'Edit a template any time. Old entries keep their rules until you choose to apply the new ones.'],
+     ].forEach(([icon, heading, text]) => { %>
+    <div class="col-md-4">
+      <div class="card h-100">
+        <div class="card-body">
+          <i class="bi <%= icon %> fs-3 text-primary" aria-hidden="true"></i>
+          <h2 class="h5 mt-2"><%= heading %></h2>
+          <p class="text-body-secondary mb-0"><%= text %></p>
+        </div>
       </div>
     </div>
-  </div>
-  <div class="col-md-4">
-    <div class="card h-100">
-      <div class="card-body">
-        <h2 class="h5 card-title">2. Create lists</h2>
-        <p class="card-text text-body-secondary">Make lists from any template, like "Office Appointments" and "Home Visits" from one "Contact" template.</p>
-        <a href="/lists" class="card-link">Lists</a>
-      </div>
-    </div>
-  </div>
-  <div class="col-md-4">
-    <div class="card h-100">
-      <div class="card-body">
-        <h2 class="h5 card-title">3. Change safely</h2>
-        <p class="card-text text-body-secondary">Edit a template any time. Old entries keep their rules until you choose to apply the new ones.</p>
-      </div>
-    </div>
-  </div>
+  <% }); %>
 </div>
 
 <%- include('partials/footer') %>

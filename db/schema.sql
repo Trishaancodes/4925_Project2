@@ -30,7 +30,7 @@ CREATE TABLE IF NOT EXISTS `template_field` (
   field_id    INT AUTO_INCREMENT PRIMARY KEY,
   version_id  INT          NOT NULL,
   name        VARCHAR(100) NOT NULL,
-  type        ENUM('boolean', 'text', 'textarea', 'dropdown', 'date') NOT NULL,
+  type        ENUM('boolean', 'text', 'textarea', 'dropdown', 'date', 'number', 'email', 'url') NOT NULL,
   is_required BOOLEAN      NOT NULL DEFAULT FALSE,
   rules       JSON         NULL,
   sort_order  INT          NOT NULL DEFAULT 0,
@@ -44,6 +44,7 @@ CREATE TABLE IF NOT EXISTS `list` (
   user_id     INT          NOT NULL,
   template_id INT          NOT NULL,
   name        VARCHAR(100) NOT NULL,
+  description VARCHAR(500) NULL,
   created_at  DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
   UNIQUE (user_id, name),
   FOREIGN KEY (user_id) REFERENCES `user` (user_id) ON DELETE CASCADE,
@@ -63,3 +64,7 @@ CREATE TABLE IF NOT EXISTS `list_entry` (
   FOREIGN KEY (list_id) REFERENCES `list` (list_id) ON DELETE CASCADE,
   FOREIGN KEY (version_id) REFERENCES `template_version` (version_id) ON DELETE RESTRICT
 );
+
+-- Upgrades a database created before the number/email/url types existed (safe to run again)
+ALTER TABLE `template_field`
+  MODIFY type ENUM('boolean', 'text', 'textarea', 'dropdown', 'date', 'number', 'email', 'url') NOT NULL;

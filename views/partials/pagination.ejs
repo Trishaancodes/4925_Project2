@@ -1,0 +1,28 @@
+<%# "Showing 1–20 of 45" plus page buttons. Params: pagination { page, pages, total, perPage }, baseQuery (object of other query params to keep). %>
+<% const from = pagination.total === 0 ? 0 : (pagination.page - 1) * pagination.perPage + 1; %>
+<% const to = Math.min(pagination.page * pagination.perPage, pagination.total); %>
+<% const linkTo = (p) => '?' + new URLSearchParams({ ...Object.fromEntries(Object.entries(baseQuery).filter(([, v]) => v !== null && v !== '')), page: p }).toString(); %>
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mt-3">
+  <span class="small text-body-secondary">Showing <%= from %>–<%= to %> of <%= pagination.total %></span>
+  <% if (pagination.pages > 1) { %>
+    <nav aria-label="Pages">
+      <ul class="pagination pagination-sm mb-0">
+        <li class="page-item <%= pagination.page === 1 ? 'disabled' : '' %>">
+          <a class="page-link" href="<%= linkTo(pagination.page - 1) %>" aria-label="Previous page"><i class="bi bi-chevron-left" aria-hidden="true"></i></a>
+        </li>
+        <% for (let p = 1; p <= pagination.pages; p++) { %>
+          <% if (p === 1 || p === pagination.pages || Math.abs(p - pagination.page) <= 1) { %>
+            <li class="page-item <%= p === pagination.page ? 'active' : '' %>" <%- p === pagination.page ? 'aria-current="page"' : '' %>>
+              <a class="page-link" href="<%= linkTo(p) %>"><%= p %></a>
+            </li>
+          <% } else if (Math.abs(p - pagination.page) === 2) { %>
+            <li class="page-item disabled"><span class="page-link">…</span></li>
+          <% } %>
+        <% } %>
+        <li class="page-item <%= pagination.page === pagination.pages ? 'disabled' : '' %>">
+          <a class="page-link" href="<%= linkTo(pagination.page + 1) %>" aria-label="Next page"><i class="bi bi-chevron-right" aria-hidden="true"></i></a>
+        </li>
+      </ul>
+    </nav>
+  <% } %>
+</div>

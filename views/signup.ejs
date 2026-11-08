@@ -1,41 +1,64 @@
-<%- include('partials/header', { title: 'Sign up' }) %>
+<%- include('partials/header', { title: 'Create account', bare: true }) %>
 
-<div class="row justify-content-center">
-  <div class="col-sm-10 col-md-7 col-lg-5">
-    <div class="card shadow-sm">
-      <div class="card-body p-4">
-        <h1 class="h3 mb-4">Create an account</h1>
+<div class="row g-0 min-vh-100">
+  <%- include('partials/authHero') %>
+  <div class="col-lg-6 d-flex align-items-center justify-content-center p-4">
+    <div class="w-100" style="max-width: 28rem">
+      <a href="/" class="d-lg-none d-flex align-items-center gap-2 text-decoration-none text-body fs-4 fw-bold mb-4">
+        <i class="bi bi-layers-fill text-primary" aria-hidden="true"></i> ListForge
+      </a>
+      <div class="card shadow">
+        <div class="card-body p-4 p-md-5">
+          <h2 class="h3 fw-bold mb-1">Create Account</h2>
+          <p class="text-body-secondary mb-4">Start building your own lists</p>
 
-        <%- include('partials/errors', { errors }) %>
+          <%- include('partials/errors', { errors }) %>
 
-        <form action="/signup" method="POST">
-          <div class="mb-3">
-            <label for="username" class="form-label">Username</label>
-            <input id="username" name="username" class="form-control" value="<%= values.username || '' %>"
-                   required minlength="3" maxlength="50" pattern="[A-Za-z0-9_]+" autocomplete="username" aria-describedby="username-help">
-            <div id="username-help" class="form-text">3 to 50 characters: letters, numbers and underscores.</div>
-          </div>
-          <div class="mb-3">
-            <label for="email" class="form-label">Email</label>
-            <input id="email" name="email" type="email" class="form-control" value="<%= values.email || '' %>"
-                   required maxlength="255" autocomplete="email">
-          </div>
-          <div class="mb-3">
-            <label for="password" class="form-label">Password</label>
-            <input id="password" name="password" type="password" class="form-control" required minlength="10"
-                   autocomplete="new-password" aria-describedby="password-help">
-            <div id="password-help" class="form-text">At least 10 characters, with an uppercase letter, a lowercase letter, a number and a symbol.</div>
-          </div>
-          <div class="mb-4">
-            <label for="confirmPassword" class="form-label">Confirm password</label>
-            <input id="confirmPassword" name="confirmPassword" type="password" class="form-control" required autocomplete="new-password">
-          </div>
-          <button type="submit" class="btn btn-primary w-100">Create account</button>
-        </form>
+          <form action="/signup" method="POST">
+            <div class="mb-3">
+              <label for="username" class="form-label">Username</label>
+              <div class="input-group">
+                <span class="input-group-text"><i class="bi bi-person" aria-hidden="true"></i></span>
+                <input id="username" name="username" class="form-control" value="<%= values.username || '' %>"
+                       required minlength="3" maxlength="50" pattern="[A-Za-z0-9_]+" autocomplete="username" aria-describedby="username-help">
+              </div>
+              <div id="username-help" class="form-text">3 to 50 characters: letters, numbers and underscores.</div>
+            </div>
+            <div class="mb-3">
+              <label for="email" class="form-label">Email</label>
+              <div class="input-group">
+                <span class="input-group-text"><i class="bi bi-envelope" aria-hidden="true"></i></span>
+                <input id="email" name="email" type="email" class="form-control" value="<%= values.email || '' %>"
+                       required maxlength="255" autocomplete="email">
+              </div>
+            </div>
+            <div class="mb-3">
+              <label for="password" class="form-label">Password</label>
+              <div class="input-group">
+                <span class="input-group-text"><i class="bi bi-lock" aria-hidden="true"></i></span>
+                <input id="password" name="password" type="password" class="form-control" required minlength="10"
+                       autocomplete="new-password" aria-describedby="password-help">
+                <button class="btn btn-outline-secondary" type="button" data-toggle-password="password" aria-label="Show password">
+                  <i class="bi bi-eye" aria-hidden="true"></i>
+                </button>
+              </div>
+              <div id="password-help" class="form-text">At least 10 characters, with an uppercase letter, a lowercase letter, a number and a symbol.</div>
+            </div>
+            <div class="mb-4">
+              <label for="confirmPassword" class="form-label">Confirm password</label>
+              <div class="input-group">
+                <span class="input-group-text"><i class="bi bi-lock" aria-hidden="true"></i></span>
+                <input id="confirmPassword" name="confirmPassword" type="password" class="form-control" required autocomplete="new-password">
+              </div>
+            </div>
+            <button type="submit" class="btn btn-primary w-100 py-2">Create Account</button>
+          </form>
+          <p class="text-center small mt-4 mb-0">Already have an account? <a href="/login">Sign In</a></p>
+        </div>
       </div>
     </div>
-    <p class="text-center mt-3">Already have an account? <a href="/login">Log in</a></p>
   </div>
 </div>
 
-<%- include('partials/footer') %>
+<%- include('partials/showPassword') %>
+<%- include('partials/footer', { bare: true }) %>

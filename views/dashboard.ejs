@@ -1,0 +1,90 @@
+<%- include('partials/header', { title: 'Dashboard' }) %>
+
+<%- include('partials/pageHeader', {
+  title: 'Dashboard',
+  subtitle: `Welcome back, ${currentUser.username}.`,
+  actions: '<a class="btn btn-primary" href="/templates/new"><i class="bi bi-plus-lg me-1" aria-hidden="true"></i>New Template</a>'
+         + '<a class="btn btn-outline-secondary" href="/lists/new"><i class="bi bi-plus-lg me-1" aria-hidden="true"></i>New List</a>',
+}) %>
+
+<div class="row g-3 mb-4">
+  <% [
+       ['Templates', counts.templates, 'bi-stack', '/templates?owner=mine'],
+       ['Lists', counts.lists, 'bi-list-ul', '/lists?owner=mine'],
+       ['Entries', counts.entries, 'bi-journal-text', '/entries'],
+       ['Need updating', counts.outdated, 'bi-arrow-repeat', '/entries'],
+     ].forEach(([label, value, icon, href]) => { %>
+    <div class="col-6 col-xl-3">
+      <a class="card h-100 text-decoration-none" href="<%= href %>">
+        <div class="card-body d-flex align-items-center gap-3">
+          <span class="d-inline-flex align-items-center justify-content-center rounded-3 bg-primary-subtle text-primary fs-4" style="width: 3rem; height: 3rem">
+            <i class="bi <%= icon %>" aria-hidden="true"></i>
+          </span>
+          <div>
+            <div class="fs-3 fw-bold lh-1"><%= value %></div>
+            <div class="small text-body-secondary"><%= label %></div>
+          </div>
+        </div>
+      </a>
+    </div>
+  <% }); %>
+</div>
+
+<div class="row g-3">
+  <div class="col-lg-6">
+    <div class="card h-100">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <span class="fw-semibold">Your lists</span>
+        <a class="small" href="/lists?owner=mine">View all</a>
+      </div>
+      <% if (recentLists.length === 0) { %>
+        <div class="card-body text-center text-body-secondary py-5">
+          <i class="bi bi-list-ul fs-2" aria-hidden="true"></i>
+          <p class="mt-2 mb-3">You haven't made a list yet.</p>
+          <a class="btn btn-primary btn-sm" href="/lists/new">Create a list</a>
+        </div>
+      <% } else { %>
+        <ul class="list-group list-group-flush">
+          <% recentLists.forEach((l) => { %>
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+              <div>
+                <a class="fw-semibold text-decoration-none" href="/lists/<%= l.list_id %>"><%= l.name %></a>
+                <div class="small text-body-secondary"><%= l.template_name %></div>
+              </div>
+              <span class="badge text-bg-secondary rounded-pill"><%= l.entry_count %> <%= l.entry_count === 1 ? 'entry' : 'entries' %></span>
+            </li>
+          <% }); %>
+        </ul>
+      <% } %>
+    </div>
+  </div>
+
+  <div class="col-lg-6">
+    <div class="card h-100">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <span class="fw-semibold">Recent entries</span>
+        <a class="small" href="/entries">View all</a>
+      </div>
+      <% if (recentEntries.length === 0) { %>
+        <div class="card-body text-center text-body-secondary py-5">
+          <i class="bi bi-journal-text fs-2" aria-hidden="true"></i>
+          <p class="mt-2 mb-0">Entries you add will show up here.</p>
+        </div>
+      <% } else { %>
+        <ul class="list-group list-group-flush">
+          <% recentEntries.forEach((e) => { %>
+            <li class="list-group-item">
+              <div class="d-flex justify-content-between gap-2">
+                <a class="text-decoration-none fw-semibold" href="/lists/<%= e.list_id %>"><%= e.list_name %></a>
+                <span class="small text-body-secondary text-nowrap"><%= formatDateTime(e.updated_at) %></span>
+              </div>
+              <div class="small text-body-secondary text-truncate"><%= e.preview %></div>
+            </li>
+          <% }); %>
+        </ul>
+      <% } %>
+    </div>
+  </div>
+</div>
+
+<%- include('partials/footer') %>

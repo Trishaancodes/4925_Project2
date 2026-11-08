@@ -1,26 +1,53 @@
-<%# One labelled input for a column. Params: field ({ name, type, is_required, rules }), name (form name), id, value, required (bool), label. %>
+<%# One labelled input for a column.
+    Params: field ({ name, type, is_required, rules }), name (form name), id, value, required (bool), label (plain text),
+            star (optional, shows a required marker), error (optional message shown under the field in red). %>
+<% const starMark = typeof star !== 'undefined' && star; %>
 <% const text = value === undefined || value === null ? '' : String(value); %>
+<% const fieldError = typeof error !== 'undefined' ? error : null; %>
+<% const invalid = fieldError ? 'is-invalid' : ''; %>
+<% const describedBy = fieldError ? `aria-describedby="${id}-error" aria-invalid="true"` : ''; %>
 <% if (field.type === 'boolean') { %>
-  <div class="form-check">
+  <div class="form-check form-switch">
     <%# Unchecked boxes send nothing, so the hidden "false" makes "no" explicit. If checked, "on" comes last and wins. %>
     <input type="hidden" name="<%= name %>" value="false">
-    <input class="form-check-input" type="checkbox" id="<%= id %>" name="<%= name %>" value="on" <%= value === true || text === 'on' || text === 'true' ? 'checked' : '' %>>
-    <label class="form-check-label" for="<%= id %>"><%= label %></label>
+    <input class="form-check-input <%= invalid %>" type="checkbox" role="switch" id="<%= id %>" name="<%= name %>" value="on"
+           <%= value === true || text === 'on' || text === 'true' ? 'checked' : '' %> <%- describedBy %>>
+    <label class="form-check-label" for="<%= id %>"><%= label %><% if (starMark) { %> <span class="text-primary">*</span><% } %></label>
+    <% if (fieldError) { %><div class="invalid-feedback" id="<%= id %>-error"><%= fieldError %></div><% } %>
   </div>
 <% } else { %>
-  <label class="form-label" for="<%= id %>"><%= label %></label>
+  <label class="form-label fw-semibold" for="<%= id %>"><%= label %><% if (starMark) { %> <span class="text-primary">*</span><% } %></label>
   <% if (field.type === 'textarea') { %>
-    <textarea class="form-control" id="<%= id %>" name="<%= name %>" rows="4" maxlength="5000" <%= required ? 'required' : '' %>><%= text %></textarea>
-  <% } else if (field.type === 'dropdown') { %>
-    <select class="form-select" id="<%= id %>" name="<%= name %>" <%= required ? 'required' : '' %>>
-      <option value="">Choose...</option>
-      <% ((field.rules && field.rules.options) || []).forEach((option) => { %>
-        <option value="<%= option %>" <%= option === text ? 'selected' : '' %>><%= option %></option>
-      <% }); %>
-    </select>
-  <% } else if (field.type === 'date') { %>
-    <input class="form-control" type="date" id="<%= id %>" name="<%= name %>" value="<%= text %>" <%= required ? 'required' : '' %>>
+    <textarea class="form-control <%= invalid %>" id="<%= id %>" name="<%= name %>" rows="4" maxlength="5000"
+              <%= required ? 'required' : '' %> <%- describedBy %>><%= text %></textarea>
   <% } else { %>
-    <input class="form-control" id="<%= id %>" name="<%= name %>" value="<%= text %>" maxlength="255" <%= required ? 'required' : '' %>>
+    <div class="input-group has-validation">
+      <span class="input-group-text <%= fieldError ? 'text-danger border-danger' : '' %>"><i class="bi <%= fieldIcons[field.type] %>" aria-hidden="true"></i></span>
+      <% if (field.type === 'dropdown') { %>
+        <select class="form-select <%= invalid %>" id="<%= id %>" name="<%= name %>" <%= required ? 'required' : '' %> <%- describedBy %>>
+          <option value="">Choose...</option>
+          <% ((field.rules && field.rules.options) || []).forEach((option) => { %>
+            <option value="<%= option %>" <%= option === text ? 'selected' : '' %>><%= option %></option>
+          <% }); %>
+        </select>
+      <% } else if (field.type === 'date') { %>
+        <input class="form-control <%= invalid %>" type="date" id="<%= id %>" name="<%= name %>" value="<%= text %>" <%= required ? 'required' : '' %> <%- describedBy %>>
+      <% } else if (field.type === 'number') { %>
+        <% const rules = field.rules || {}; %>
+        <input class="form-control <%= invalid %>" type="number" step="any" id="<%= id %>" name="<%= name %>" value="<%= text %>"
+               <%= rules.min !== undefined ? `min=${rules.min}` : '' %> <%= rules.max !== undefined ? `max=${rules.max}` : '' %>
+               <%= required ? 'required' : '' %> <%- describedBy %>>
+      <% } else if (field.type === 'email') { %>
+        <input class="form-control <%= invalid %>" type="email" id="<%= id %>" name="<%= name %>" value="<%= text %>" maxlength="255"
+               autocomplete="off" placeholder="user@example.com" <%= required ? 'required' : '' %> <%- describedBy %>>
+      <% } else if (field.type === 'url') { %>
+        <input class="form-control <%= invalid %>" type="url" id="<%= id %>" name="<%= name %>" value="<%= text %>" maxlength="2000"
+               placeholder="https://" <%= required ? 'required' : '' %> <%- describedBy %>>
+      <% } else { %>
+        <input class="form-control <%= invalid %>" id="<%= id %>" name="<%= name %>" value="<%= text %>" maxlength="255" <%= required ? 'required' : '' %> <%- describedBy %>>
+      <% } %>
+      <% if (fieldError) { %><div class="invalid-feedback" id="<%= id %>-error"><%= fieldError %></div><% } %>
+    </div>
   <% } %>
+  <% if (field.type === 'textarea' && fieldError) { %><div class="invalid-feedback d-block" id="<%= id %>-error"><%= fieldError %></div><% } %>
 <% } %>

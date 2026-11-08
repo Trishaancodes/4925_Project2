@@ -1,104 +1,184 @@
 <%- include('../partials/header', { title: list.name }) %>
 
-<nav aria-label="breadcrumb">
-  <ol class="breadcrumb">
-    <li class="breadcrumb-item"><a href="/lists">Lists</a></li>
-    <li class="breadcrumb-item active" aria-current="page"><%= list.name %></li>
-  </ol>
-</nav>
+<%- include('../partials/crumbs', { crumbs: [['/lists', 'Lists'], ['', list.name]] }) %>
 
-<div class="d-flex flex-wrap justify-content-between align-items-start gap-3 mb-3">
+<div class="d-flex flex-wrap justify-content-between align-items-start gap-3 mb-4">
   <div>
-    <h1 class="h2 mb-1"><%= list.name %></h1>
-    <p class="text-body-secondary mb-0">
-      By <%= list.username %> &middot;
-      Template <a href="/templates/<%= list.template_id %>"><%= list.template_name %></a>
-      <span class="badge text-bg-secondary">v<%= list.version_number %></span> &middot;
-      Created <%= list.created_at.toLocaleDateString('en-CA') %>
+    <div class="d-flex align-items-center gap-2">
+      <i class="bi bi-people fs-3 text-primary" aria-hidden="true"></i>
+      <h1 class="h3 fw-bold mb-0"><%= list.name %></h1>
+    </div>
+    <p class="text-body-secondary mb-0 mt-1">
+      Based on <a class="link-secondary" href="/templates/<%= list.template_id %>"><%= list.template_name %> (v<%= list.version_number %>)</a>
+      &middot; <%= totalEntries %> <%= totalEntries === 1 ? 'entry' : 'entries' %>
+      <% if (!isOwner) { %>&middot; by <%= list.username %><% } %>
     </p>
+    <% if (list.description) { %><p class="mb-0 mt-2" style="max-width: 48rem"><%= list.description %></p><% } %>
   </div>
   <% if (isOwner) { %>
-    <div class="d-flex flex-wrap gap-2">
-      <a class="btn btn-primary" href="/lists/<%= list.list_id %>/entries/new">+ Add entry</a>
-      <form action="/lists/<%= list.list_id %>/delete" method="POST" class="m-0"
-            onsubmit="return confirm('Delete this list and all its entries?');">
-        <button type="submit" class="btn btn-outline-danger">Delete list</button>
-      </form>
+    <div class="d-flex gap-2">
+      <a class="btn btn-primary" href="/lists/<%= list.list_id %>/entries/new"><i class="bi bi-plus-lg me-1" aria-hidden="true"></i>Add Entry</a>
+      <div class="dropdown">
+        <button class="btn btn-outline-secondary" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="More list actions">
+          <i class="bi bi-three-dots" aria-hidden="true"></i>
+        </button>
+        <ul class="dropdown-menu dropdown-menu-end">
+          <li><a class="dropdown-item" href="/templates/<%= list.template_id %>"><i class="bi bi-stack me-2" aria-hidden="true"></i>View template</a></li>
+          <% if (outdatedCount > 0) { %>
+            <li><a class="dropdown-item" href="/lists/<%= list.list_id %>/entries/upgrade"><i class="bi bi-arrow-repeat me-2" aria-hidden="true"></i>Apply new rules</a></li>
+          <% } %>
+          <li><hr class="dropdown-divider"></li>
+          <li>
+            <form action="/lists/<%= list.list_id %>/delete" method="POST" class="m-0"
+                  onsubmit="return confirm('Delete this list and all its entries?');">
+              <button type="submit" class="dropdown-item text-danger"><i class="bi bi-trash me-2" aria-hidden="true"></i>Delete list</button>
+            </form>
+          </li>
+        </ul>
+      </div>
     </div>
   <% } %>
 </div>
 
 <% if (isOwner && upgradeResult) { %>
-  <div class="alert <%= upgradeResult.remaining ? 'alert-warning' : 'alert-success' %>" role="status">
+  <div class="alert <%= upgradeResult.remaining ? 'alert-warning' : 'alert-success' %> alert-dismissible fade show" role="status">
+    <i class="bi bi-check-circle me-1" aria-hidden="true"></i>
     Updated <%= upgradeResult.upgraded %> <%= upgradeResult.upgraded === 1 ? 'entry' : 'entries' %> to version <%= list.version_number %>.
     <% if (upgradeResult.remaining) { %><%= upgradeResult.remaining %> still need fixing.<% } %>
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
   </div>
 <% } %>
 
-<% const oldCount = entries.filter((e) => e.version_number < list.version_number).length; %>
-<% if (isOwner && oldCount > 0) { %>
+<% if (isOwner && outdatedCount > 0) { %>
   <div class="alert alert-warning d-flex flex-wrap justify-content-between align-items-center gap-2">
     <span>
+      <i class="bi bi-exclamation-triangle me-1" aria-hidden="true"></i>
       <strong>The template has changed.</strong>
-      <%= oldCount %> <%= oldCount === 1 ? 'entry follows' : 'entries follow' %> an older version's rules.
+      <%= outdatedCount %> <%= outdatedCount === 1 ? 'entry follows' : 'entries follow' %> an older version's rules.
     </span>
     <a class="btn btn-warning btn-sm" href="/lists/<%= list.list_id %>/entries/upgrade">Apply the new rules to existing entries</a>
   </div>
 <% } %>
 
-<% if (entries.length === 0) { %>
+<% if (totalEntries === 0) { %>
   <div class="card card-body text-center py-5">
-    <p class="mb-2">No entries yet.</p>
+    <i class="bi bi-database fs-1 text-body-secondary" aria-hidden="true"></i>
+    <h2 class="h5 fw-semibold mt-3">No entries yet</h2>
     <% if (isOwner) { %>
-      <div><a class="btn btn-primary" href="/lists/<%= list.list_id %>/entries/new">Add the first entry</a></div>
+      <p class="text-body-secondary">Add your first entry to get started.</p>
+      <div><a class="btn btn-primary" href="/lists/<%= list.list_id %>/entries/new"><i class="bi bi-plus-lg me-1" aria-hidden="true"></i>Add Entry</a></div>
+    <% } else { %>
+      <p class="text-body-secondary mb-0">The owner hasn't added any entries.</p>
     <% } %>
   </div>
 <% } else { %>
-  <div class="card">
-    <div class="table-responsive">
-      <table class="table table-hover align-middle mb-0">
-        <thead class="table-light">
-          <tr>
-            <% fields.forEach((f) => { %><th scope="col"><%= f.name %></th><% }); %>
-            <th scope="col">Version</th>
-            <% if (isOwner) { %><th scope="col" class="text-end">Actions</th><% } %>
-          </tr>
-        </thead>
-        <tbody>
-          <% entries.forEach((e) => { %>
+  <form class="mb-3" method="GET" action="/lists/<%= list.list_id %>" role="search">
+    <div class="input-group">
+      <span class="input-group-text"><i class="bi bi-search" aria-hidden="true"></i></span>
+      <input class="form-control" name="q" value="<%= filters.q %>" placeholder="Search entries..." aria-label="Search entries">
+      <% if (filters.q) { %><a class="btn btn-outline-secondary" href="/lists/<%= list.list_id %>">Clear</a><% } %>
+      <button class="btn btn-outline-secondary" type="submit">Search</button>
+    </div>
+  </form>
+
+  <% if (entries.length === 0) { %>
+    <div class="card card-body text-center py-4 text-body-secondary">No entries match "<%= filters.q %>".</div>
+  <% } else { %>
+    <div class="card">
+      <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+          <thead>
             <tr>
-              <% fields.forEach((f) => { %>
-                <% const value = e.data[f.name]; %>
-                <td>
-                  <% if (value === undefined || value === null || value === '') { %>
-                    <span class="text-body-tertiary">&mdash;</span>
-                  <% } else if (f.type === 'boolean') { %>
-                    <span class="badge <%= value ? 'text-bg-success' : 'text-bg-light border' %>"><%= value ? 'Yes' : 'No' %></span>
-                  <% } else if (f.type === 'textarea') { %>
-                    <% String(value).split('\n').forEach((line, i) => { %><% if (i) { %><br><% } %><%= line %><% }); %>
-                  <% } else { %>
-                    <%= value %>
-                  <% } %>
-                </td>
-              <% }); %>
-              <td>
-                <span class="badge <%= e.version_number < list.version_number ? 'text-bg-warning' : 'text-bg-secondary' %>">v<%= e.version_number %></span>
-              </td>
-              <% if (isOwner) { %>
-                <td class="text-end text-nowrap">
-                  <a class="btn btn-outline-secondary btn-sm" href="/lists/<%= list.list_id %>/entries/<%= e.entry_id %>/edit">Edit</a>
-                  <form action="/lists/<%= list.list_id %>/entries/<%= e.entry_id %>/delete" method="POST" class="d-inline"
-                        onsubmit="return confirm('Delete this entry?');">
-                    <button type="submit" class="btn btn-outline-danger btn-sm">Delete</button>
-                  </form>
-                </td>
-              <% } %>
+              <% fields.forEach((f) => { %><th scope="col" class="text-nowrap"><%= f.name %></th><% }); %>
+              <th scope="col">Version</th>
+              <th scope="col">Created</th>
+              <% if (isOwner) { %><th scope="col"><span class="visually-hidden">Actions</span></th><% } %>
             </tr>
-          <% }); %>
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            <% entries.forEach((e) => { %>
+              <tr>
+                <% fields.forEach((f) => { %>
+                  <% const value = e.data[f.name]; %>
+                  <td>
+                    <% if (value === undefined || value === null || value === '') { %>
+                      <span class="text-body-tertiary">&mdash;</span>
+                    <% } else if (f.type === 'boolean') { %>
+                      <span class="badge <%= value ? 'text-bg-success' : 'text-bg-secondary' %>"><%= value ? 'Yes' : 'No' %></span>
+                    <% } else if (f.type === 'url' && /^https?:\/\//i.test(String(value))) { %>
+                      <a href="<%= value %>" target="_blank" rel="noopener noreferrer"><%= value %></a>
+                    <% } else if (f.type === 'email') { %>
+                      <a href="mailto:<%= value %>"><%= value %></a>
+                    <% } else if (f.type === 'date') { %>
+                      <span class="text-nowrap"><%= formatDate(new Date(`${value}T12:00:00Z`)) %></span>
+                    <% } else if (f.type === 'textarea') { %>
+                      <% String(value).split('\n').forEach((line, i) => { %><% if (i) { %><br><% } %><%= line %><% }); %>
+                    <% } else { %>
+                      <%= value %>
+                    <% } %>
+                  </td>
+                <% }); %>
+                <td>
+                  <span class="badge rounded-pill <%= e.version_number < list.version_number ? 'text-bg-warning' : 'badge-latest' %>">v<%= e.version_number %></span>
+                </td>
+                <td class="small text-body-secondary text-nowrap"><%= formatDateTime(e.created_at) %></td>
+                <% if (isOwner) { %>
+                  <td class="text-end">
+                    <div class="dropdown">
+                      <button class="btn btn-sm btn-link text-body-secondary" type="button" data-bs-toggle="dropdown" aria-expanded="false"
+                              data-bs-popper-config='{"strategy":"fixed"}' aria-label="Entry actions">
+                        <i class="bi bi-three-dots-vertical" aria-hidden="true"></i>
+                      </button>
+                      <ul class="dropdown-menu dropdown-menu-end">
+                        <li><a class="dropdown-item" href="/lists/<%= list.list_id %>/entries/<%= e.entry_id %>/edit"><i class="bi bi-pencil me-2" aria-hidden="true"></i>Edit</a></li>
+                        <li>
+                          <form action="/lists/<%= list.list_id %>/entries/<%= e.entry_id %>/delete" method="POST" class="m-0"
+                                onsubmit="return confirm('Delete this entry?');">
+                            <button type="submit" class="dropdown-item text-danger"><i class="bi bi-trash me-2" aria-hidden="true"></i>Delete</button>
+                          </form>
+                        </li>
+                      </ul>
+                    </div>
+                  </td>
+                <% } %>
+              </tr>
+            <% }); %>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  <% } %>
+
+  <%- include('../partials/pagination', { pagination, baseQuery: { q: filters.q } }) %>
+<% } %>
+
+<% if (isOwner && entryAdded) { %>
+  <%# Shown once after adding an entry (the URL has ?added=1) %>
+  <div class="modal fade" id="entry-added" tabindex="-1" aria-labelledby="entry-added-title" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content text-center">
+        <div class="modal-header border-0 pb-0">
+          <button type="button" class="btn-close ms-auto" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body px-4 pb-4 pt-0">
+          <i class="bi bi-check-circle text-success display-4" aria-hidden="true"></i>
+          <h2 class="h4 fw-bold mt-3" id="entry-added-title">Entry Added</h2>
+          <p class="text-body-secondary">The entry has been added to <%= list.name %>.</p>
+          <div class="d-flex justify-content-center gap-2">
+            <a class="btn btn-primary" href="/lists/<%= list.list_id %>/entries/new">Add Another</a>
+            <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">View List</button>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
+  <script>
+    window.addEventListener('DOMContentLoaded', () => {
+      new bootstrap.Modal(document.getElementById('entry-added')).show();
+      // Drop ?added=1 so refreshing the page doesn't show the popup again
+      history.replaceState(null, '', location.pathname);
+    });
+  </script>
 <% } %>
 
 <%- include('../partials/footer') %>

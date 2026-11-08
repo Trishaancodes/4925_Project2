@@ -1,0 +1,68 @@
+<%- include('../partials/header', { title: 'Entries' }) %>
+
+<%- include('../partials/pageHeader', {
+  title: 'Entries',
+  subtitle: 'Every entry in your lists, newest first.',
+}) %>
+
+<form class="row g-2 mb-3" method="GET" action="/entries" role="search">
+  <div class="col-md">
+    <div class="input-group">
+      <span class="input-group-text"><i class="bi bi-search" aria-hidden="true"></i></span>
+      <input class="form-control" name="q" value="<%= filters.q %>" placeholder="Search entries..." aria-label="Search entries">
+    </div>
+  </div>
+  <div class="col-md-4">
+    <select class="form-select" name="list" aria-label="Filter by list" onchange="this.form.submit()">
+      <option value="">All lists</option>
+      <% lists.forEach((l) => { %>
+        <option value="<%= l.list_id %>" <%= filters.listId === l.list_id ? 'selected' : '' %>><%= l.name %></option>
+      <% }); %>
+    </select>
+  </div>
+  <div class="col-auto">
+    <button class="btn btn-outline-secondary" type="submit"><i class="bi bi-funnel me-1" aria-hidden="true"></i>Filter</button>
+  </div>
+</form>
+
+<% if (entries.length === 0) { %>
+  <div class="card card-body text-center py-5 text-body-secondary">
+    <i class="bi bi-journal-text fs-1" aria-hidden="true"></i>
+    <p class="mt-2 mb-0"><%= filters.q || filters.listId ? 'No entries match your search.' : "You haven't added any entries yet." %></p>
+  </div>
+<% } else { %>
+  <div class="card">
+    <div class="table-responsive">
+      <table class="table table-hover align-middle mb-0">
+        <thead>
+          <tr>
+            <th scope="col">List</th>
+            <th scope="col">Entry</th>
+            <th scope="col">Version</th>
+            <th scope="col">Updated</th>
+            <th scope="col" class="text-end">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% entries.forEach((e) => { %>
+            <tr>
+              <td class="text-nowrap"><a class="fw-semibold text-decoration-none" href="/lists/<%= e.list_id %>"><%= e.list_name %></a></td>
+              <td class="text-body-secondary text-truncate" style="max-width: 28rem"><%= e.preview %></td>
+              <td>
+                <span class="badge <%= e.outdated ? 'text-bg-warning' : 'badge-latest' %>" title="<%= e.outdated ? 'Saved under an older version' : 'Follows the latest version' %>">v<%= e.version_number %></span>
+              </td>
+              <td class="small text-body-secondary text-nowrap"><%= formatDateTime(e.updated_at) %></td>
+              <td class="text-end">
+                <a class="btn btn-sm btn-outline-secondary" href="/lists/<%= e.list_id %>/entries/<%= e.entry_id %>/edit" aria-label="Edit entry"><i class="bi bi-pencil" aria-hidden="true"></i></a>
+              </td>
+            </tr>
+          <% }); %>
+        </tbody>
+      </table>
+    </div>
+  </div>
+<% } %>
+
+<%- include('../partials/pagination', { pagination, baseQuery: { q: filters.q, list: filters.listId } }) %>
+
+<%- include('../partials/footer') %>

@@ -2,23 +2,17 @@
 <% const heading = edit ? `Edit ${edit.originalName}` : 'New template'; %>
 <%- include('../partials/header', { title: heading }) %>
 
-<nav aria-label="breadcrumb">
-  <ol class="breadcrumb">
-    <li class="breadcrumb-item"><a href="/templates">Templates</a></li>
-    <% if (edit) { %>
-      <li class="breadcrumb-item"><a href="/templates/<%= edit.templateId %>"><%= edit.originalName %></a></li>
-      <li class="breadcrumb-item active" aria-current="page">Edit</li>
-    <% } else { %>
-      <li class="breadcrumb-item active" aria-current="page">New</li>
-    <% } %>
-  </ol>
-</nav>
-
-<h1 class="h2 mb-3"><%= heading %></h1>
+<%- include('../partials/pageHeader', {
+  title: heading,
+  subtitle: edit ? 'Change the name or the columns.' : 'Name your template and add the columns your lists need.',
+  crumbs: edit
+    ? [['/templates', 'Templates'], [`/templates/${edit.templateId}`, edit.originalName], ['', 'Edit']]
+    : [['/templates', 'Templates'], ['', 'New']],
+}) %>
 
 <% if (edit && edit.entryCount > 0) { %>
   <div class="alert alert-info">
-    <strong><%= edit.entryCount %> list <%= edit.entryCount === 1 ? 'entry uses' : 'entries use' %> version <%= edit.versionNumber %>.</strong>
+    <i class="bi bi-info-circle me-1" aria-hidden="true"></i><strong><%= edit.entryCount %> list <%= edit.entryCount === 1 ? 'entry uses' : 'entries use' %> version <%= edit.versionNumber %>.</strong>
     Changing the columns will save a new version <%= edit.versionNumber + 1 %>.
     Existing entries keep the rules they were saved with.
   </div>
@@ -41,10 +35,10 @@
     <% }); %>
   </div>
 
-  <button type="button" class="btn btn-outline-primary mb-4" id="add-row">+ Add column</button>
+  <button type="button" class="btn btn-outline-primary mb-4" id="add-row"><i class="bi bi-plus-lg me-1" aria-hidden="true"></i>Add column</button>
 
-  <div class="d-flex gap-2 border-top pt-3">
-    <button type="submit" class="btn btn-primary">Save template</button>
+  <div class="d-flex justify-content-end gap-2 border-top pt-3">
+    <button type="submit" class="btn btn-primary order-last">Save Template</button>
     <a class="btn btn-outline-secondary" href="<%= edit ? `/templates/${edit.templateId}` : '/templates' %>">Cancel</a>
   </div>
 </form>
@@ -74,11 +68,12 @@
     e.target.closest('[data-field-row]').remove();
   });
 
-  // Only show the options box for dropdown columns
+  // Only show the options box for dropdowns, and min/max for numbers
   rows.addEventListener('change', (e) => {
     if (!e.target.matches('[data-type-select]')) return;
-    const options = e.target.closest('[data-field-row]').querySelector('[data-options]');
-    options.hidden = e.target.value !== 'dropdown';
+    const row = e.target.closest('[data-field-row]');
+    row.querySelector('[data-options]').hidden = e.target.value !== 'dropdown';
+    row.querySelector('[data-number-rules]').hidden = e.target.value !== 'number';
   });
 </script>
 

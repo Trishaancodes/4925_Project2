@@ -1,0 +1,79 @@
+/* ListForge theme: Bootstrap 5.3 dark mode with an orange accent.
+   Only colour variables and the sidebar live here; everything else is Bootstrap classes. */
+
+[data-bs-theme="dark"] {
+  --lf-accent: #f7931e;
+  --lf-accent-hover: #ffa53f;
+  --lf-accent-soft: rgba(247, 147, 30, 0.14);
+  --lf-surface: #17181b;
+
+  --bs-body-bg: #0e0f11;
+  --bs-body-color: #e4e4e7;
+  --bs-secondary-bg: #17181b;
+  --bs-tertiary-bg: #1c1d21;
+  --bs-border-color: #2a2b30;
+  --bs-primary: #f7931e;
+  --bs-primary-rgb: 247, 147, 30;
+  --bs-primary-text-emphasis: #ffb45e;
+  --bs-primary-bg-subtle: rgba(247, 147, 30, 0.14);
+  --bs-primary-border-subtle: rgba(247, 147, 30, 0.45);
+  --bs-link-color: #f7a23e;
+  --bs-link-color-rgb: 247, 162, 62;
+  --bs-link-hover-color: #ffbe73;
+  --bs-link-hover-color-rgb: 255, 190, 115;
+  --bs-focus-ring-color: rgba(247, 147, 30, 0.3);
+}
+
+.btn-primary {
+  --bs-btn-color: #16120c;
+  --bs-btn-bg: var(--lf-accent);
+  --bs-btn-border-color: var(--lf-accent);
+  --bs-btn-hover-color: #16120c;
+  --bs-btn-hover-bg: var(--lf-accent-hover);
+  --bs-btn-hover-border-color: var(--lf-accent-hover);
+  --bs-btn-active-color: #16120c;
+  --bs-btn-active-bg: var(--lf-accent-hover);
+  --bs-btn-active-border-color: var(--lf-accent-hover);
+  --bs-btn-disabled-color: #16120c;
+  --bs-btn-disabled-bg: var(--lf-accent);
+  --bs-btn-disabled-border-color: var(--lf-accent);
+  --bs-btn-focus-shadow-rgb: 247, 147, 30;
+  font-weight: 600;
+}
+
+.btn-outline-primary {
+  --bs-btn-color: var(--lf-accent);
+  --bs-btn-border-color: var(--lf-accent);
+  --bs-btn-hover-color: #16120c;
+  --bs-btn-hover-bg: var(--lf-accent);
+  --bs-btn-hover-border-color: var(--lf-accent);
+  --bs-btn-active-color: #16120c;
+  --bs-btn-active-bg: var(--lf-accent);
+  --bs-btn-active-border-color: var(--lf-accent);
+}
+
+.card { --bs-card-bg: var(--lf-surface); }
+.table { --bs-table-bg: transparent; }
+.form-control:focus, .form-select:focus { border-color: var(--lf-accent); }
+.form-check-input:checked { background-color: var(--lf-accent); border-color: var(--lf-accent); }
+.nav-tabs { --bs-nav-link-color: var(--bs-secondary-color); --bs-nav-link-hover-color: var(--bs-body-color); --bs-nav-tabs-link-active-color: var(--lf-accent); --bs-nav-tabs-link-active-border-color: var(--bs-border-color) var(--bs-border-color) var(--lf-surface); --bs-nav-tabs-link-active-bg: var(--lf-surface); }
+
+/* Sidebar: fixed column on md+ screens, slide-out menu on phones (Bootstrap offcanvas-md) */
+.lf-sidebar { width: 240px; flex-shrink: 0; background: #121315; }
+@media (min-width: 768px) {
+  .lf-sidebar { position: sticky; top: 0; height: 100vh; }
+}
+.lf-sidebar .nav-link { color: var(--bs-body-color); border-radius: 0.5rem; padding: 0.6rem 0.85rem; }
+.lf-sidebar .nav-link:hover { background: var(--bs-tertiary-bg); }
+.lf-sidebar .nav-link.active { background: var(--lf-accent-soft); color: var(--lf-accent); font-weight: 600; }
+
+/* Orange "latest version" pill */
+.badge-latest { color: var(--lf-accent); background: var(--lf-accent-soft); border: 1px solid var(--bs-primary-border-subtle); }
+
+/* Glowing orange background on the sign-in hero */
+.lf-hero {
+  background:
+    radial-gradient(120% 70% at 0% 100%, rgba(247, 147, 30, 0.35), transparent 60%),
+    radial-gradient(90% 60% at 100% 110%, rgba(247, 100, 20, 0.25), transparent 60%),
+    #111214;
+}

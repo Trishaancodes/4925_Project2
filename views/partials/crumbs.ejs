@@ -1,0 +1,12 @@
+<%# Breadcrumbs. Param: crumbs [[href, label], ...]; the last one is the current page. %>
+<nav aria-label="breadcrumb" class="small mb-2">
+  <ol class="breadcrumb mb-0">
+    <% crumbs.forEach(([href, label], i) => { %>
+      <% if (i === crumbs.length - 1) { %>
+        <li class="breadcrumb-item active" aria-current="page"><%= label %></li>
+      <% } else { %>
+        <li class="breadcrumb-item"><a class="link-secondary text-decoration-none" href="<%= href %>"><%= label %></a></li>
+      <% } %>
+    <% }); %>
+  </ol>
+</nav>

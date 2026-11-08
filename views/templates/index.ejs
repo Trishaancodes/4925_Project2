@@ -1,42 +1,102 @@
 <%- include('../partials/header', { title: 'Templates' }) %>
 
-<div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
-  <h1 class="h2 mb-0">Templates</h1>
-  <% if (currentUser) { %>
-    <a class="btn btn-primary" href="/templates/new">Create a template</a>
-  <% } %>
-</div>
+<%- include('../partials/pageHeader', {
+  title: 'Templates',
+  subtitle: 'Define reusable schemas for your lists.',
+  actions: currentUser ? '<a class="btn btn-primary" href="/templates/new"><i class="bi bi-plus-lg me-1" aria-hidden="true"></i>New Template</a>' : '',
+}) %>
+
+<form class="row g-2 mb-3" method="GET" action="/templates" role="search">
+  <div class="col-md">
+    <div class="input-group">
+      <span class="input-group-text"><i class="bi bi-search" aria-hidden="true"></i></span>
+      <input class="form-control" name="q" value="<%= filters.q %>" placeholder="Search templates..." aria-label="Search templates">
+    </div>
+  </div>
+  <div class="col-md-3">
+    <select class="form-select" name="owner" aria-label="Filter by owner" onchange="this.form.submit()">
+      <% const ownerOptions = [['all', 'All templates'], ['starter', 'Starter templates'], ['others', "Other people's"]];
+         if (currentUser) ownerOptions.splice(1, 0, ['mine', 'My templates']); %>
+      <% ownerOptions.forEach(([value, label]) => { %>
+        <option value="<%= value %>" <%= filters.owner === value ? 'selected' : '' %>><%= label %></option>
+      <% }); %>
+    </select>
+  </div>
+  <div class="col-auto">
+    <button class="btn btn-outline-secondary" type="submit"><i class="bi bi-funnel me-1" aria-hidden="true"></i>Filters</button>
+  </div>
+</form>
 
 <% if (templates.length === 0) { %>
-  <div class="card card-body text-center py-5">
-    <p class="mb-2">No templates yet.</p>
-    <% if (currentUser) { %>
-      <div><a class="btn btn-primary" href="/templates/new">Create the first one</a></div>
+  <div class="card card-body text-center py-5 text-body-secondary">
+    <i class="bi bi-stack fs-1" aria-hidden="true"></i>
+    <% if (filters.q || filters.owner !== 'all') { %>
+      <p class="mt-2 mb-0">No templates match your search.</p>
     <% } else { %>
-      <p class="mb-0"><a href="/signup">Sign up</a> to create one.</p>
+      <p class="mt-2 mb-3">No templates yet.</p>
+      <% if (currentUser) { %><div><a class="btn btn-primary" href="/templates/new">Create the first one</a></div><% } %>
     <% } %>
   </div>
 <% } else { %>
   <div class="card">
     <div class="table-responsive">
       <table class="table table-hover align-middle mb-0">
-        <thead class="table-light">
+        <thead>
           <tr>
-            <th scope="col">Name</th>
+            <th scope="col">Template</th>
             <th scope="col">Owner</th>
-            <th scope="col">Columns</th>
             <th scope="col">Version</th>
-            <th scope="col">Created</th>
+            <th scope="col">Fields</th>
+            <th scope="col">Updated</th>
+            <th scope="col"><span class="visually-hidden">Actions</span></th>
           </tr>
         </thead>
         <tbody>
           <% templates.forEach((t) => { %>
+            <% const mine = currentUser && currentUser.id === t.user_id; %>
             <tr>
-              <td><a class="fw-semibold" href="/templates/<%= t.template_id %>"><%= t.name %></a></td>
-              <td><%= t.username %></td>
+              <td>
+                <a class="fw-semibold text-decoration-none text-body d-inline-flex align-items-center gap-2" href="/templates/<%= t.template_id %>">
+                  <i class="bi bi-stack text-primary" aria-hidden="true"></i><%= t.name %>
+                </a>
+              </td>
+              <td>
+                <% if (t.username === starterUsername) { %><span class="badge text-bg-info">Starter</span>
+                <% } else if (mine) { %><span class="text-body-secondary">You</span>
+                <% } else { %><%= t.username %><% } %>
+              </td>
+              <td><span class="badge rounded-pill badge-latest">v<%= t.version_number %> (Latest)</span></td>
               <td><%= t.field_count %></td>
-              <td><span class="badge text-bg-secondary">v<%= t.version_number %></span></td>
-              <td class="text-body-secondary"><%= t.created_at.toLocaleDateString('en-CA') %></td>
+              <td class="text-body-secondary text-nowrap"><%= formatDate(t.updated_at) %></td>
+              <td class="text-end">
+                <div class="dropdown">
+                  <button class="btn btn-sm btn-link text-body-secondary" type="button" data-bs-toggle="dropdown" aria-expanded="false"
+                          data-bs-popper-config='{"strategy":"fixed"}' aria-label="Actions for <%= t.name %>">
+                    <i class="bi bi-three-dots-vertical" aria-hidden="true"></i>
+                  </button>
+                  <ul class="dropdown-menu dropdown-menu-end">
+                    <li><a class="dropdown-item" href="/templates/<%= t.template_id %>"><i class="bi bi-eye me-2" aria-hidden="true"></i>View</a></li>
+                    <% if (currentUser) { %>
+                      <li><a class="dropdown-item" href="/lists/new?templateId=<%= t.template_id %>"><i class="bi bi-plus-lg me-2" aria-hidden="true"></i>Create a list</a></li>
+                      <li>
+                        <form action="/templates/<%= t.template_id %>/copy" method="POST" class="m-0">
+                          <button class="dropdown-item" type="submit"><i class="bi bi-copy me-2" aria-hidden="true"></i><%= mine ? 'Duplicate' : 'Copy to my templates' %></button>
+                        </form>
+                      </li>
+                    <% } %>
+                    <% if (mine) { %>
+                      <li><a class="dropdown-item" href="/templates/<%= t.template_id %>/edit"><i class="bi bi-pencil me-2" aria-hidden="true"></i>Edit</a></li>
+                      <li><hr class="dropdown-divider"></li>
+                      <li>
+                        <form action="/templates/<%= t.template_id %>/delete" method="POST" class="m-0"
+                              onsubmit="return confirm('Delete this template and all its versions?');">
+                          <button class="dropdown-item text-danger" type="submit"><i class="bi bi-trash me-2" aria-hidden="true"></i>Delete</button>
+                        </form>
+                      </li>
+                    <% } %>
+                  </ul>
+                </div>
+              </td>
             </tr>
           <% }); %>
         </tbody>

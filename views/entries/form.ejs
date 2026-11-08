@@ -1,44 +1,50 @@
 <%# Shared by "add entry" and "edit entry". `entry` is null when adding. %>
-<% const heading = entry ? 'Edit entry' : 'Add entry'; %>
+<% const heading = entry ? 'Edit Entry' : 'Add Entry'; %>
 <%- include('../partials/header', { title: `${heading} | ${list.name}` }) %>
 
-<nav aria-label="breadcrumb">
-  <ol class="breadcrumb">
-    <li class="breadcrumb-item"><a href="/lists">Lists</a></li>
-    <li class="breadcrumb-item"><a href="/lists/<%= list.list_id %>"><%= list.name %></a></li>
-    <li class="breadcrumb-item active" aria-current="page"><%= heading %></li>
-  </ol>
-</nav>
+<%- include('../partials/pageHeader', {
+  title: heading,
+  subtitle: entry ? `Update this entry in ${list.name}.` : `Enter details for a new entry in ${list.name}.`,
+  crumbs: [['/lists', 'Lists'], [`/lists/${list.list_id}`, list.name], ['', heading]],
+}) %>
+
+<% const errorFor = {}; errors.forEach((e) => { if (e.field && !errorFor[e.field]) errorFor[e.field] = e.message; }); %>
 
 <div class="row">
-  <div class="col-lg-7">
-    <h1 class="h2 mb-3"><%= heading %></h1>
-
+  <div class="col-lg-8 col-xl-7">
     <% if (entry && entry.version_number < list.version_number) { %>
       <div class="alert alert-info">
+        <i class="bi bi-info-circle me-1" aria-hidden="true"></i>
         <strong>This entry was saved under version <%= entry.version_number %> of the template.</strong>
         Saving it will check it against version <%= list.version_number %>'s rules.
       </div>
     <% } %>
 
-    <%- include('../partials/errors', { errors }) %>
+    <% if (errors.length) { %>
+      <div class="alert alert-danger" role="alert">
+        <i class="bi bi-exclamation-circle me-1" aria-hidden="true"></i>
+        <%= errors.length === 1 ? '1 field needs' : `${errors.length} fields need` %> fixing before this entry can be saved.
+      </div>
+    <% } %>
 
     <div class="card">
-      <div class="card-body">
+      <div class="card-body p-4">
         <form action="<%= entry ? `/lists/${list.list_id}/entries/${entry.entry_id}/edit` : `/lists/${list.list_id}/entries` %>" method="POST">
           <% fields.forEach((field, i) => { %>
-            <div class="mb-3">
+            <div class="mb-4">
               <%- include('_input', {
                 field, name: `f_${i}`, id: `f_${i}`, value: values[i],
                 required: field.is_required && field.type !== 'boolean',
-                label: field.name + (field.is_required ? ' *' : ''),
+                label: field.name, star: field.is_required, error: errorFor[field.name] || null,
               }) %>
             </div>
           <% }); %>
-          <p class="form-text">* required</p>
-          <div class="d-flex gap-2">
-            <button type="submit" class="btn btn-primary"><%= entry ? 'Save changes' : 'Add entry' %></button>
-            <a class="btn btn-outline-secondary" href="/lists/<%= list.list_id %>">Cancel</a>
+          <div class="d-flex justify-content-between align-items-center border-top pt-3">
+            <span class="small text-body-secondary"><span class="text-primary">*</span> required</span>
+            <div class="d-flex gap-2">
+              <a class="btn btn-outline-secondary" href="/lists/<%= list.list_id %>">Cancel</a>
+              <button type="submit" class="btn btn-primary"><%= entry ? 'Save Changes' : 'Save Entry' %></button>
+            </div>
           </div>
         </form>
       </div>

@@ -73,7 +73,7 @@ router.post('/', requireLogin, requireListOwner, async (req, res, next) => {
       'INSERT INTO `list_entry` (list_id, version_id, data) VALUES (?, ?, ?)',
       [list.list_id, list.version_id, JSON.stringify(data)]
     );
-    res.redirect(`/lists/${list.list_id}`);
+    res.redirect(`/lists/${list.list_id}?added=1`); // the list page shows an "Entry Added" popup
   } catch (err) {
     next(err);
   }

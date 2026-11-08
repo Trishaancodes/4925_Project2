@@ -1,13 +1,18 @@
+<% const bare = typeof locals.bare !== 'undefined' && locals.bare; %>
+<% if (bare) { %>
   </main>
-  <footer class="border-top bg-body py-3 mt-auto">
-    <div class="container d-flex flex-wrap justify-content-between gap-2 small text-body-secondary">
-      <span>List Templates &middot; COMP 4921 Project 2</span>
-      <nav class="d-flex gap-3">
-        <a class="link-secondary" href="/templates">Templates</a>
-        <a class="link-secondary" href="/lists">Lists</a>
-      </nav>
+<% } else { %>
+      </main>
+      <footer class="border-top px-3 px-md-4 px-lg-5 py-3 small text-body-secondary d-flex flex-wrap justify-content-between gap-2">
+        <span>ListForge &middot; COMP 4921 Project 2</span>
+        <nav class="d-flex gap-3">
+          <a class="link-secondary" href="/templates">Templates</a>
+          <a class="link-secondary" href="/lists">Lists</a>
+        </nav>
+      </footer>
     </div>
-  </footer>
+  </div>
+<% } %>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
           integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
 </body>

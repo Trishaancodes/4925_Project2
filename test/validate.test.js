@@ -83,6 +83,37 @@ test('unknown extra input is ignored', () => {
   assert.deepEqual(Object.keys(result.data), ['email']);
 });
 
+test('email must look like an email (PDF example: "email - required email")', () => {
+  const fields = [{ name: 'email', type: 'email', is_required: 1, rules: null }];
+  assert.deepEqual(check(fields, { email: ' AlfredJazz@example.com ' }).data, { email: 'AlfredJazz@example.com' });
+  for (const bad of ['abc', 'a@b', '@example.com', 'a b@example.com']) {
+    assert.deepEqual(messages(check(fields, { email: bad })), ['email must be a valid email address'], bad);
+  }
+});
+
+test('number is stored as a number and respects min/max', () => {
+  const fields = [{ name: 'rating', type: 'number', is_required: 1, rules: { min: 1, max: 5 } }];
+  assert.deepEqual(check(fields, { rating: '4' }).data, { rating: 4 });
+  assert.deepEqual(check(fields, { rating: '2.5' }).data, { rating: 2.5 });
+  assert.deepEqual(messages(check(fields, { rating: '0' })), ['rating must be at least 1']);
+  assert.deepEqual(messages(check(fields, { rating: '6' })), ['rating must be at most 5']);
+  assert.deepEqual(messages(check(fields, { rating: 'four' })), ['rating must be a number']);
+  assert.deepEqual(messages(check(fields, { rating: '1e3' })), ['rating must be a number']);
+});
+
+test('number without limits accepts negatives', () => {
+  const fields = [{ name: 'balance', type: 'number', is_required: 0, rules: null }];
+  assert.deepEqual(check(fields, { balance: '-12.75' }).data, { balance: -12.75 });
+});
+
+test('url only accepts http and https links', () => {
+  const fields = [{ name: 'site', type: 'url', is_required: 0, rules: null }];
+  assert.deepEqual(check(fields, { site: 'https://bcit.ca' }).data, { site: 'https://bcit.ca/' });
+  for (const bad of ['bcit.ca', 'javascript:alert(1)', 'ftp://files.example.com']) {
+    assert.equal(check(fields, { site: bad }).errors.length, 1, bad);
+  }
+});
+
 test('unknown column type is reported, not saved', () => {
   const fields = [{ name: 'x', type: 'colour', is_required: 0, rules: null }];
   assert.deepEqual(messages(validateEntry(fields, () => 'red')), ['x has an unknown type']);

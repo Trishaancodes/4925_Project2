@@ -1,65 +1,156 @@
 <%- include('../partials/header', { title: template.name }) %>
 
-<nav aria-label="breadcrumb">
-  <ol class="breadcrumb">
-    <li class="breadcrumb-item"><a href="/templates">Templates</a></li>
-    <li class="breadcrumb-item active" aria-current="page"><%= template.name %></li>
-  </ol>
-</nav>
+<% const isStarter = template.username === starterUsername; %>
+<%- include('../partials/crumbs', { crumbs: [['/templates', 'Templates'], ['', `${template.name} (v${template.version_number})`]] }) %>
 
-<div class="d-flex flex-wrap justify-content-between align-items-start gap-3 mb-3">
+<div class="d-flex flex-wrap justify-content-between align-items-start gap-3 mb-4">
   <div>
-    <h1 class="h2 mb-1"><%= template.name %></h1>
-    <p class="text-body-secondary mb-0">
-      By <%= template.username %> &middot;
-      <span class="badge text-bg-secondary">v<%= template.version_number %></span> &middot;
-      Created <%= template.created_at.toLocaleDateString('en-CA') %> &middot;
+    <div class="d-flex align-items-center flex-wrap gap-2">
+      <i class="bi bi-stack fs-3 text-primary" aria-hidden="true"></i>
+      <h1 class="h3 fw-bold mb-0"><%= template.name %> (v<%= template.version_number %>)</h1>
+      <span class="badge rounded-pill badge-latest">Latest</span>
+      <% if (isStarter) { %><span class="badge text-bg-info">Starter template</span><% } %>
+    </div>
+    <p class="text-body-secondary mb-0 mt-1">
+      <%= fields.length %> <%= fields.length === 1 ? 'field' : 'fields' %> &middot;
+      <%= isStarter ? 'Built in' : `By ${template.username}` %> &middot;
       Used by <%= template.list_count %> <%= template.list_count === 1 ? 'list' : 'lists' %>
     </p>
   </div>
   <div class="d-flex flex-wrap gap-2">
-    <% if (currentUser) { %>
-      <a class="btn btn-primary" href="/lists/new?templateId=<%= template.template_id %>">Create a list from this</a>
-    <% } %>
     <% if (isOwner) { %>
-      <a class="btn btn-outline-secondary" href="/templates/<%= template.template_id %>/edit">Edit</a>
-      <form action="/templates/<%= template.template_id %>/delete" method="POST" class="m-0"
-            onsubmit="return confirm('Delete this template and all its versions?');">
-        <button type="submit" class="btn btn-outline-danger">Delete</button>
-      </form>
+      <a class="btn btn-outline-secondary" href="/templates/<%= template.template_id %>/edit"><i class="bi bi-pencil me-1" aria-hidden="true"></i>Edit Template</a>
+    <% } %>
+    <% if (currentUser) { %>
+      <a class="btn btn-primary" href="/lists/new?templateId=<%= template.template_id %>"><i class="bi bi-plus-lg me-1" aria-hidden="true"></i>Create List</a>
+      <div class="dropdown">
+        <button class="btn btn-outline-secondary" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="More actions">
+          <i class="bi bi-three-dots" aria-hidden="true"></i>
+        </button>
+        <ul class="dropdown-menu dropdown-menu-end">
+          <li>
+            <form action="/templates/<%= template.template_id %>/copy" method="POST" class="m-0">
+              <button class="dropdown-item" type="submit"><i class="bi bi-copy me-2" aria-hidden="true"></i><%= isOwner ? 'Duplicate' : 'Copy to my templates' %></button>
+            </form>
+          </li>
+          <% if (isOwner) { %>
+            <li><hr class="dropdown-divider"></li>
+            <li>
+              <form action="/templates/<%= template.template_id %>/delete" method="POST" class="m-0"
+                    onsubmit="return confirm('Delete this template and all its versions?');">
+                <button class="dropdown-item text-danger" type="submit"><i class="bi bi-trash me-2" aria-hidden="true"></i>Delete</button>
+              </form>
+            </li>
+          <% } %>
+        </ul>
+      </div>
     <% } %>
   </div>
 </div>
 
-<div class="card">
-  <div class="card-header fw-semibold">Columns</div>
-  <div class="table-responsive">
-    <table class="table align-middle mb-0">
-      <thead class="table-light">
-        <tr>
-          <th scope="col">Name</th>
-          <th scope="col">Type</th>
-          <th scope="col">Required</th>
-          <th scope="col">Options</th>
-        </tr>
-      </thead>
-      <tbody>
-        <% fields.forEach((f) => { %>
+<ul class="nav nav-tabs" role="tablist">
+  <% [['fields', 'Fields'], ['details', 'Details'], ['versions', 'Versions']].forEach(([id, label], i) => { %>
+    <li class="nav-item" role="presentation">
+      <button class="nav-link <%= i === 0 ? 'active' : '' %>" id="<%= id %>-tab" data-bs-toggle="tab" data-bs-target="#<%= id %>" type="button"
+              role="tab" aria-controls="<%= id %>" aria-selected="<%= i === 0 %>"><%= label %></button>
+    </li>
+  <% }); %>
+</ul>
+
+<div class="tab-content card border-top-0 rounded-top-0">
+  <div class="tab-pane active" id="fields" role="tabpanel" aria-labelledby="fields-tab">
+    <div class="table-responsive">
+      <table class="table align-middle mb-0">
+        <thead>
           <tr>
-            <td class="fw-semibold"><%= f.name %></td>
-            <td><%= fieldTypes[f.type] %></td>
-            <td>
-              <% if (f.is_required) { %><span class="badge text-bg-primary">Required</span><% } else { %><span class="text-body-secondary">Optional</span><% } %>
-            </td>
-            <td>
-              <% if (f.rules && f.rules.options) { %>
-                <% f.rules.options.forEach((o) => { %><span class="badge text-bg-light border me-1"><%= o %></span><% }); %>
-              <% } %>
-            </td>
+            <th scope="col">Field</th>
+            <th scope="col">Type</th>
+            <th scope="col" class="text-center">Required</th>
+            <th scope="col">Validation / Options</th>
           </tr>
-        <% }); %>
-      </tbody>
-    </table>
+        </thead>
+        <tbody>
+          <% fields.forEach((f) => { %>
+            <tr>
+              <td class="fw-semibold"><i class="bi <%= fieldIcons[f.type] %> text-primary me-2" aria-hidden="true"></i><%= f.name %></td>
+              <td><%= fieldTypes[f.type] %></td>
+              <td class="text-center">
+                <% if (f.is_required) { %><i class="bi bi-check-lg text-success fs-5" aria-label="Required"></i><% } else { %><span class="text-body-tertiary" aria-label="Optional">&mdash;</span><% } %>
+              </td>
+              <td class="text-body-secondary">
+                <% if (f.rules && f.rules.options) { %>
+                  <% f.rules.options.forEach((o) => { %><span class="badge text-bg-secondary me-1"><%= o %></span><% }); %>
+                <% } else if (f.rules && (f.rules.min !== undefined || f.rules.max !== undefined)) { %>
+                  <% if (f.rules.min !== undefined && f.rules.max !== undefined) { %>From <%= f.rules.min %> to <%= f.rules.max %>
+                  <% } else if (f.rules.min !== undefined) { %>At least <%= f.rules.min %>
+                  <% } else { %>At most <%= f.rules.max %><% } %>
+                <% } else if (f.type === 'email') { %>Valid email format
+                <% } else if (f.type === 'url') { %>http:// or https:// link
+                <% } else if (f.type === 'date') { %>Real calendar date
+                <% } else if (f.type === 'text') { %>Up to 255 characters
+                <% } else if (f.type === 'textarea') { %>Up to 5000 characters
+                <% } else { %>&mdash;<% } %>
+              </td>
+            </tr>
+          <% }); %>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="tab-pane" id="details" role="tabpanel" aria-labelledby="details-tab">
+    <div class="card-body">
+      <dl class="row mb-4">
+        <dt class="col-sm-3 text-body-secondary fw-normal">Owner</dt>
+        <dd class="col-sm-9"><%= isStarter ? 'Starter template (built in, anyone can use or copy it)' : template.username %></dd>
+        <dt class="col-sm-3 text-body-secondary fw-normal">Created</dt>
+        <dd class="col-sm-9"><%= formatDate(template.created_at) %></dd>
+        <dt class="col-sm-3 text-body-secondary fw-normal">Current version</dt>
+        <dd class="col-sm-9 mb-0">v<%= template.version_number %></dd>
+      </dl>
+      <h2 class="h6 fw-semibold">Lists using this template</h2>
+      <% if (lists.length === 0) { %>
+        <p class="text-body-secondary mb-0">No lists yet.</p>
+      <% } else { %>
+        <ul class="list-unstyled mb-0">
+          <% lists.forEach((l) => { %>
+            <li class="mb-1"><i class="bi bi-list-ul text-primary me-2" aria-hidden="true"></i><a href="/lists/<%= l.list_id %>"><%= l.name %></a> <span class="text-body-secondary small">by <%= l.username %></span></li>
+          <% }); %>
+        </ul>
+      <% } %>
+    </div>
+  </div>
+
+  <div class="tab-pane" id="versions" role="tabpanel" aria-labelledby="versions-tab">
+    <div class="table-responsive">
+      <table class="table align-middle mb-0">
+        <thead>
+          <tr>
+            <th scope="col">Version</th>
+            <th scope="col">Status</th>
+            <th scope="col">Fields</th>
+            <th scope="col">Entries using it</th>
+            <th scope="col">Saved</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% versions.forEach((v, i) => { %>
+            <tr>
+              <td class="fw-semibold">v<%= v.version_number %></td>
+              <td>
+                <% if (i === 0) { %><span class="badge rounded-pill badge-latest">Latest</span><% } else { %><span class="badge rounded-pill text-bg-secondary">Older</span><% } %>
+              </td>
+              <td><%= v.field_count %></td>
+              <td><%= v.entry_count %></td>
+              <td class="text-body-secondary"><%= formatDate(v.created_at) %></td>
+            </tr>
+          <% }); %>
+        </tbody>
+      </table>
+    </div>
+    <p class="card-body small text-body-secondary mb-0 pt-0">
+      Editing the columns after entries exist saves a new version. Entries keep the rules they were saved with until the list owner applies the new ones.
+    </p>
   </div>
 </div>
 

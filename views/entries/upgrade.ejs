@@ -1,14 +1,10 @@
 <%- include('../partials/header', { title: `Update old entries | ${list.name}` }) %>
 
-<nav aria-label="breadcrumb">
-  <ol class="breadcrumb">
-    <li class="breadcrumb-item"><a href="/lists">Lists</a></li>
-    <li class="breadcrumb-item"><a href="/lists/<%= list.list_id %>"><%= list.name %></a></li>
-    <li class="breadcrumb-item active" aria-current="page">Update old entries</li>
-  </ol>
-</nav>
-
-<h1 class="h2 mb-3">Apply the new rules to existing entries</h1>
+<%- include('../partials/pageHeader', {
+  title: 'Apply the new rules to existing entries',
+  subtitle: `Bring ${list.name}'s older entries up to version ${list.version_number}.`,
+  crumbs: [['/lists', 'Lists'], [`/lists/${list.list_id}`, list.name], ['', 'Update old entries']],
+}) %>
 
 <% if (oldEntries.length === 0) { %>
   <div class="alert alert-success">All entries already follow version <%= list.version_number %> of the template.</div>
@@ -24,7 +20,7 @@
   <div class="card mb-4">
     <div class="table-responsive">
       <table class="table align-middle mb-0">
-        <thead class="table-light">
+        <thead>
           <tr>
             <th scope="col">Entry</th>
             <th scope="col">Version</th>

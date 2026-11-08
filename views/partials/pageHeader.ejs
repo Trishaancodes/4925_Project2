@@ -1,0 +1,12 @@
+<%# Page title row. Params: title, subtitle (optional, plain text), crumbs (optional [[href, label], ...]; the last one is
+    the current page), actions (optional HTML for the buttons on the right; must not contain user input). %>
+<% if (typeof crumbs !== 'undefined' && crumbs.length) { %>
+  <%- include('crumbs', { crumbs }) %>
+<% } %>
+<div class="d-flex flex-wrap justify-content-between align-items-start gap-3 mb-4">
+  <div>
+    <h1 class="h3 fw-bold mb-1"><%= title %></h1>
+    <% if (typeof subtitle !== 'undefined' && subtitle) { %><p class="text-body-secondary mb-0"><%= subtitle %></p><% } %>
+  </div>
+  <% if (typeof actions !== 'undefined' && actions) { %><div class="d-flex flex-wrap gap-2"><%- actions %></div><% } %>
+</div>

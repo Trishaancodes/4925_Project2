@@ -11,6 +11,23 @@ async function setup() {
   await conn.query(`CREATE DATABASE IF NOT EXISTS \`${process.env.DB_NAME}\``);
   await conn.query(`USE \`${process.env.DB_NAME}\``);
   await conn.query(fs.readFileSync(path.join(__dirname, 'schema.sql'), 'utf8'));
+
+  // Columns added after the first release. CREATE TABLE IF NOT EXISTS skips existing tables,
+  // so older databases get them here instead.
+  const addedColumns = [
+    ['list', 'description', 'VARCHAR(500) NULL AFTER name'],
+  ];
+  for (const [table, column, definition] of addedColumns) {
+    const [found] = await conn.query(
+      'SELECT 1 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = ? AND column_name = ?',
+      [table, column]
+    );
+    if (found.length === 0) {
+      await conn.query(`ALTER TABLE \`${table}\` ADD COLUMN \`${column}\` ${definition}`);
+      console.log(`Added ${table}.${column}`);
+    }
+  }
+
   await conn.end();
 
   console.log(`Database "${process.env.DB_NAME}" is ready.`);

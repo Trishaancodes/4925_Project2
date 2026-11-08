@@ -3,6 +3,7 @@ const db = require('../db');
 const { requireLogin } = require('../middleware/auth');
 const { requireTemplateOwner } = require('../middleware/ownership');
 const { FIELD_TYPES, parseTemplateForm } = require('../lib/templateForm');
+const { STARTER_USERNAME } = require('../lib/starter');
 const router = express.Router();
 
 // Anyone can view. Only the owner can edit or delete (anyone else gets a 400).
@@ -54,27 +55,58 @@ async function loadFields(conn, versionId) {
   return fields;
 }
 
+// JSON with object keys sorted, because MySQL reorders the keys of JSON it stores
+function stableJson(value) {
+  if (Array.isArray(value)) return `[${value.map(stableJson).join(',')}]`;
+  if (value && typeof value === 'object') {
+    return `{${Object.keys(value).sort().map((k) => `${JSON.stringify(k)}:${stableJson(value[k])}`).join(',')}}`;
+  }
+  return JSON.stringify(value ?? null);
+}
+
 // Same columns, types, required flags, rules and order?
 function sameFields(saved, submitted) {
-  const normalize = (f) => JSON.stringify([f.name, f.type, Boolean(f.isRequired ?? f.is_required), f.rules || null]);
+  const normalize = (f) => stableJson([f.name, f.type, Boolean(f.isRequired ?? f.is_required), f.rules || null]);
   return saved.length === submitted.length && saved.every((f, i) => normalize(f) === normalize(submitted[i]));
 }
 
-// All templates, newest first, with the column count of each one's latest version
+// All templates, most recently changed first, with the column count of each one's latest version.
+// ?q= searches names; ?owner= is all, mine, starter or others.
 router.get('/', async (req, res, next) => {
+  const q = String(req.query.q || '').trim();
+  const owner = ['mine', 'starter', 'others'].includes(req.query.owner) ? req.query.owner : 'all';
+
   try {
+    const where = [];
+    const params = [];
+    if (q) {
+      where.push('t.name LIKE ?');
+      params.push(`%${q}%`);
+    }
+    if (owner === 'mine') {
+      where.push('t.user_id = ?');
+      params.push(req.session.userId || 0);
+    } else if (owner === 'starter') {
+      where.push('u.username = ?');
+      params.push(STARTER_USERNAME);
+    } else if (owner === 'others') {
+      where.push('t.user_id <> ? AND u.username <> ?');
+      params.push(req.session.userId || 0, STARTER_USERNAME);
+    }
+
     const [templates] = await db.query(`
-      SELECT t.template_id, t.name, t.created_at, u.username,
-             v.version_number, COUNT(f.field_id) AS field_count
+      SELECT t.template_id, t.user_id, t.name, u.username,
+             v.version_number, v.created_at AS updated_at, COUNT(f.field_id) AS field_count
       FROM \`template\` t
       JOIN \`user\` u ON u.user_id = t.user_id
       JOIN \`template_version\` v ON v.template_id = t.template_id
        AND v.version_number = (SELECT MAX(version_number) FROM \`template_version\` WHERE template_id = t.template_id)
       LEFT JOIN \`template_field\` f ON f.version_id = v.version_id
-      GROUP BY t.template_id, t.name, t.created_at, u.username, v.version_number
-      ORDER BY t.created_at DESC, t.template_id DESC
-    `);
-    res.render('templates/index', { templates });
+      ${where.length ? `WHERE ${where.join(' AND ')}` : ''}
+      GROUP BY t.template_id, t.user_id, t.name, u.username, v.version_number, v.created_at
+      ORDER BY v.created_at DESC, t.template_id DESC
+    `, params);
+    res.render('templates/index', { templates, filters: { q, owner } });
   } catch (err) {
     next(err);
   }
@@ -144,8 +176,28 @@ router.get('/:templateId', async (req, res, next) => {
     }
 
     const fields = await loadFields(db, template.version_id);
+
+    // Every version, newest first, for the Versions tab
+    const [versions] = await db.query(`
+      SELECT v.version_number, v.created_at,
+             (SELECT COUNT(*) FROM \`template_field\` f WHERE f.version_id = v.version_id) AS field_count,
+             (SELECT COUNT(*) FROM \`list_entry\` e WHERE e.version_id = v.version_id) AS entry_count
+      FROM \`template_version\` v
+      WHERE v.template_id = ?
+      ORDER BY v.version_number DESC
+    `, [template.template_id]);
+
+    // Lists made from this template, for the Details tab
+    const [lists] = await db.query(`
+      SELECT l.list_id, l.name, u.username
+      FROM \`list\` l
+      JOIN \`user\` u ON u.user_id = l.user_id
+      WHERE l.template_id = ?
+      ORDER BY l.name
+    `, [template.template_id]);
+
     const isOwner = req.session.userId === template.user_id;
-    res.render('templates/show', { template, fields, isOwner, fieldTypes: FIELD_TYPES });
+    res.render('templates/show', { template, fields, versions, lists, isOwner, fieldTypes: FIELD_TYPES });
   } catch (err) {
     next(err);
   }
@@ -164,6 +216,8 @@ router.get('/:templateId/edit', requireLogin, requireTemplateOwner, async (req, 
         type: f.type,
         isRequired: Boolean(f.is_required),
         optionsText: f.rules && f.rules.options ? f.rules.options.join(', ') : '',
+        minText: f.rules && f.rules.min !== undefined ? String(f.rules.min) : '',
+        maxText: f.rules && f.rules.max !== undefined ? String(f.rules.max) : '',
       })),
     };
     const edit = {
@@ -230,6 +284,55 @@ router.post('/:templateId/edit', requireLogin, requireTemplateOwner, async (req,
     if (err.code === 'ER_DUP_ENTRY') {
       return renderForm(res, 400, { errors: [`You already have a template called "${template.name}".`], values, edit });
     }
+    next(err);
+  } finally {
+    if (conn) conn.release();
+  }
+});
+
+// "Contact" -> "Contact (copy)", or "Contact (copy 2)" etc. if that's taken by this user
+async function freeCopyName(conn, userId, name) {
+  const base = `${name} (copy`.slice(0, 90); // leave room for " 99)" within the 100 char limit
+  const [rows] = await conn.query('SELECT name FROM `template` WHERE user_id = ?', [userId]);
+  const taken = new Set(rows.map((r) => r.name.toLowerCase()));
+  for (let n = 1; ; n++) {
+    const candidate = n === 1 ? `${base})` : `${base} ${n})`;
+    if (!taken.has(candidate.toLowerCase())) return candidate;
+  }
+}
+
+// Copy any template's newest columns into a new template the logged-in user owns,
+// then open it for editing. Lets people build on someone else's template.
+router.post('/:templateId/copy', requireLogin, async (req, res, next) => {
+  let conn;
+  try {
+    conn = await db.getConnection();
+    await conn.beginTransaction();
+
+    const source = await loadLatest(conn, req.params.templateId);
+    if (!source) {
+      await conn.rollback();
+      return res.status(404).render('error', { title: 'Template not found', message: "That template doesn't exist." });
+    }
+    const fields = await loadFields(conn, source.version_id);
+    const name = await freeCopyName(conn, req.session.userId, source.name);
+
+    const [templateResult] = await conn.query(
+      'INSERT INTO `template` (user_id, name) VALUES (?, ?)',
+      [req.session.userId, name]
+    );
+    const [versionResult] = await conn.query(
+      'INSERT INTO `template_version` (template_id, version_number) VALUES (?, 1)',
+      [templateResult.insertId]
+    );
+    await insertFields(conn, versionResult.insertId, fields.map((f) => ({
+      name: f.name, type: f.type, isRequired: Boolean(f.is_required), rules: f.rules,
+    })));
+
+    await conn.commit();
+    res.redirect(`/templates/${templateResult.insertId}/edit`);
+  } catch (err) {
+    if (conn) await conn.rollback();
     next(err);
   } finally {
     if (conn) conn.release();

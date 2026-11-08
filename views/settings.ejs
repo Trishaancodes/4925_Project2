@@ -1,0 +1,53 @@
+<%- include('partials/header', { title: 'Settings' }) %>
+
+<%- include('partials/pageHeader', { title: 'Settings', subtitle: 'Your account details and password.' }) %>
+
+<% if (saved) { %>
+  <div class="alert alert-success" role="status"><i class="bi bi-check-circle me-2" aria-hidden="true"></i>Your password has been changed.</div>
+<% } %>
+
+<div class="row g-4">
+  <div class="col-lg-5">
+    <div class="card h-100">
+      <div class="card-header fw-semibold">Account</div>
+      <div class="card-body">
+        <dl class="row mb-0">
+          <dt class="col-sm-4 text-body-secondary fw-normal">Username</dt>
+          <dd class="col-sm-8"><%= account.username %></dd>
+          <dt class="col-sm-4 text-body-secondary fw-normal">Email</dt>
+          <dd class="col-sm-8 text-break"><%= account.email %></dd>
+          <dt class="col-sm-4 text-body-secondary fw-normal">Member since</dt>
+          <dd class="col-sm-8 mb-0"><%= formatDate(account.created_at) %></dd>
+        </dl>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-lg-7">
+    <div class="card">
+      <div class="card-header fw-semibold">Change password</div>
+      <div class="card-body">
+        <%- include('partials/errors', { errors }) %>
+        <form action="/settings/password" method="POST">
+          <div class="mb-3">
+            <label for="currentPassword" class="form-label">Current password</label>
+            <input id="currentPassword" name="currentPassword" type="password" class="form-control" required autocomplete="current-password">
+          </div>
+          <div class="mb-3">
+            <label for="newPassword" class="form-label">New password</label>
+            <input id="newPassword" name="newPassword" type="password" class="form-control" required minlength="10"
+                   autocomplete="new-password" aria-describedby="new-password-help">
+            <div id="new-password-help" class="form-text">At least 10 characters, with an uppercase letter, a lowercase letter, a number and a symbol.</div>
+          </div>
+          <div class="mb-4">
+            <label for="confirmPassword" class="form-label">Confirm new password</label>
+            <input id="confirmPassword" name="confirmPassword" type="password" class="form-control" required autocomplete="new-password">
+          </div>
+          <button type="submit" class="btn btn-primary">Change password</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<%- include('partials/footer') %>

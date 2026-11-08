@@ -1,22 +1,12 @@
 const express = require('express');
 const bcrypt = require('bcryptjs');
 const db = require('../db');
+const { STARTER_USERNAME } = require('../lib/starter');
+const { SALT_ROUNDS, checkPassword } = require('../lib/password');
 const router = express.Router();
 
-const SALT_ROUNDS = 12;
 const USERNAME_PATTERN = /^[A-Za-z0-9_]{3,50}$/;
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-// Returns a list of problems with the password (empty list = valid)
-function checkPassword(password) {
-  const problems = [];
-  if (password.length < 10) problems.push('Password must be at least 10 characters.');
-  if (!/[A-Z]/.test(password)) problems.push('Password needs an uppercase letter.');
-  if (!/[a-z]/.test(password)) problems.push('Password needs a lowercase letter.');
-  if (!/[0-9]/.test(password)) problems.push('Password needs a number.');
-  if (!/[^A-Za-z0-9]/.test(password)) problems.push('Password needs a symbol.');
-  return problems;
-}
 
 // Only allow redirects back to our own pages (not "//evil.com")
 function safeReturnTo(url) {
@@ -52,6 +42,8 @@ router.post('/signup', redirectIfLoggedIn, async (req, res, next) => {
   const errors = [];
   if (!USERNAME_PATTERN.test(username)) {
     errors.push('Username must be 3 to 50 characters: letters, numbers and underscores only.');
+  } else if (username.toLowerCase() === STARTER_USERNAME) {
+    errors.push('That username or email is already taken.');
   }
   if (!EMAIL_PATTERN.test(email) || email.length > 255) {
     errors.push('Enter a valid email address.');

@@ -1,28 +1,48 @@
 <%- include('../partials/header', { title: 'Lists' }) %>
 
-<div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
-  <h1 class="h2 mb-0">Lists</h1>
+<%- include('../partials/pageHeader', {
+  title: 'Lists',
+  subtitle: 'Every list follows a template, and its entries are checked against the template\'s rules.',
+  actions: currentUser ? '<a class="btn btn-primary" href="/lists/new"><i class="bi bi-plus-lg me-1" aria-hidden="true"></i>New List</a>' : '',
+}) %>
+
+<form class="row g-2 mb-3" method="GET" action="/lists" role="search">
+  <div class="col-md">
+    <div class="input-group">
+      <span class="input-group-text"><i class="bi bi-search" aria-hidden="true"></i></span>
+      <input class="form-control" name="q" value="<%= filters.q %>" placeholder="Search lists or templates..." aria-label="Search lists">
+    </div>
+  </div>
   <% if (currentUser) { %>
-    <a class="btn btn-primary" href="/lists/new">Create a list</a>
+    <div class="col-md-3">
+      <select class="form-select" name="owner" aria-label="Filter by owner" onchange="this.form.submit()">
+        <option value="all" <%= filters.owner === 'all' ? 'selected' : '' %>>All lists</option>
+        <option value="mine" <%= filters.owner === 'mine' ? 'selected' : '' %>>My lists</option>
+      </select>
+    </div>
   <% } %>
-</div>
+  <div class="col-auto">
+    <button class="btn btn-outline-secondary" type="submit"><i class="bi bi-funnel me-1" aria-hidden="true"></i>Filters</button>
+  </div>
+</form>
 
 <% if (lists.length === 0) { %>
-  <div class="card card-body text-center py-5">
-    <p class="mb-2">No lists yet.</p>
-    <% if (currentUser) { %>
-      <div><a class="btn btn-primary" href="/lists/new">Create the first one</a></div>
+  <div class="card card-body text-center py-5 text-body-secondary">
+    <i class="bi bi-list-ul fs-1" aria-hidden="true"></i>
+    <% if (filters.q || filters.owner !== 'all') { %>
+      <p class="mt-2 mb-0">No lists match your search.</p>
     <% } else { %>
-      <p class="mb-0"><a href="/signup">Sign up</a> to create one.</p>
+      <p class="mt-2 mb-3">No lists yet.</p>
+      <% if (currentUser) { %><div><a class="btn btn-primary" href="/lists/new">Create the first one</a></div><% } %>
     <% } %>
   </div>
 <% } else { %>
   <div class="card">
     <div class="table-responsive">
       <table class="table table-hover align-middle mb-0">
-        <thead class="table-light">
+        <thead>
           <tr>
-            <th scope="col">Name</th>
+            <th scope="col">List</th>
             <th scope="col">Owner</th>
             <th scope="col">Template</th>
             <th scope="col">Entries</th>
@@ -32,11 +52,16 @@
         <tbody>
           <% lists.forEach((l) => { %>
             <tr>
-              <td><a class="fw-semibold" href="/lists/<%= l.list_id %>"><%= l.name %></a></td>
-              <td><%= l.username %></td>
+              <td>
+                <a class="fw-semibold text-decoration-none text-body d-inline-flex align-items-center gap-2" href="/lists/<%= l.list_id %>">
+                  <i class="bi bi-list-ul text-primary" aria-hidden="true"></i><%= l.name %>
+                </a>
+                <% if (l.description) { %><div class="small text-body-secondary text-truncate" style="max-width: 24rem"><%= l.description %></div><% } %>
+              </td>
+              <td><%= currentUser && currentUser.id === l.user_id ? 'You' : l.username %></td>
               <td><a class="link-secondary" href="/templates/<%= l.template_id %>"><%= l.template_name %></a></td>
               <td><%= l.entry_count %></td>
-              <td class="text-body-secondary"><%= l.created_at.toLocaleDateString('en-CA') %></td>
+              <td class="text-body-secondary text-nowrap"><%= formatDate(l.created_at) %></td>
             </tr>
           <% }); %>
         </tbody>
