@@ -1,2 +1,9 @@
 node_modules/
 .env
+
+# Submission files (made from the repo, not part of it)
+Web_app_URL.txt
+Members_site_code.zip
+
+# Claude app preview settings
+.claude/
